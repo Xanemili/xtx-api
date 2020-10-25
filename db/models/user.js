@@ -4,14 +4,37 @@ const bcrypt = require('bcryptjs');
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
-    email: DataTypes.STRING,
-    name: DataTypes.STRING,
-    hashedPassword: DataTypes.STRING,
-    tokenId: DataTypes.STRING
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validates: {
+        isEmail: true,
+        len: [5, 255]
+      }
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validates: {
+        len: [3, 255],
+      }
+    },
+    hashedPassword: {
+      type: DataTypes.STRING.BINARY,
+      allowNull: false,
+      validates: {
+        len: [60, 60],
+      }
+    },
+      tokenId: {
+        type: DataTypes.STRING
+      }
   }, {});
   User.associate = function(models) {
     // associations can be defined here
   };
+
+  User.prototype.isValid = () => true;
 
   User.prototype.setPassword = function (password) {
     this.hashedPassword = bcrypt.hashSync(password);
@@ -22,6 +45,15 @@ module.exports = (sequelize, DataTypes) => {
     return bcrypt.compareSync(password, this.hashedPassword.toString());
   };
 
-  return User;
+  User.prototype.toSafeObject = function (password) {
+    return {
+      createdAt: this.createdAt,
+      email: this.email,
+      id: this.id,
+      name: this.name,
+      updatedAt: this.updatedAt,
+    };
+  }
 
+  return User;
 };
