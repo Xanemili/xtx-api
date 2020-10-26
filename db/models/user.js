@@ -41,11 +41,11 @@ module.exports = (sequelize, DataTypes) => {
     return this;
   };
 
-  User.prototype.isValidPassowrd = function (password) {
+  User.prototype.isValidPassword = function (password) {
     return bcrypt.compareSync(password, this.hashedPassword.toString());
   };
 
-  User.prototype.toSafeObject = function (password) {
+  User.prototype.toSafeObject = function () {
     return {
       createdAt: this.createdAt,
       email: this.email,

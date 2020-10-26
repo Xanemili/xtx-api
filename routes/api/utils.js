@@ -1,14 +1,12 @@
 const jwt = require('jsonwebtoken');
 const bearerToken = require('express-bearer-token');
 const uuid = require('uuid').v4
+const UserRepo = require('../../db/user-functions')
 
 const { jwtConfig: { secret, expiresIn } } = require('../../config');
 
 function generateToken(user) {
-  const data = {
-    name: user.name,
-  };
-
+  const data = user.toSafeObject();
   const jwtid = uuid();
 
   return {
@@ -23,17 +21,17 @@ function restoreUser(req, res, next){
   if (!token) {
     return(next({ status: 401, message: 'No Token'}));
   }
-  
+
   return jwt.verify(token, secret, null, async (err, payload) => {
     if(err) {
       err.status = 403;
       return next(err);
     }
-    
+
     const tokenId = payload.jwtid;
 
     try {
-      req.user = await User.findOne({ where}) // implement user retrieval
+      req.user = await UserRepo.findByTokenId(tokenId);
     } catch(e){
       return next(e);
     }
@@ -46,6 +44,6 @@ function restoreUser(req, res, next){
   });
 }
 
-const authentiated = [bearerToken(), restoreUser];
+const authenticated = [bearerToken(), restoreUser];
 
 module.exports = { generateToken, authenticated }

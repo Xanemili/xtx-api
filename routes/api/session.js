@@ -1,6 +1,7 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const { check, validationResult } = require('express-validator');
+const UserRepo = require('../../db/user-functions');
 
 const { authenticated, generateToken } = require('./utils');
 
@@ -16,13 +17,13 @@ const email = check('email')
     .withMessage('Please provide a password');
 
 router.put('/', [email, password], asyncHandler(async (req, res, next) => {
-  const errors = validationResults(req);
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next({ status: 422, errors: errors.array() });
   }
 
   const { email, password } = req.body;
-  const user = await User;
+  const user = await UserRepo.findByEmail(email);
   if(!user.isValidPassword(password)) {
     const err = new Error('Login failed');
     err.status = 401;
@@ -33,7 +34,7 @@ router.put('/', [email, password], asyncHandler(async (req, res, next) => {
   const { jwtid, token } = generateToken(user);
   user.tokenId = jwtid;
   await user.save();
-  res.json({ token, player: player.toSafeObject() })
+  res.json({ token, user: user.toSafeObject() })
 }))
 
 router.delete('/', [authenticated], asyncHandler(async (req,res ) => {

@@ -1,6 +1,7 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const { check, validationResult } = require('express-validator')
+const UserRepo = require('../../db/user-functions')
 
 const { authenticated, generateToken } = require('./utils');
 
@@ -27,12 +28,12 @@ const email = check('email')
       return next({ status: 422, errors: errors.array() });
     }
 
-    const user = await User // await user creation
+    const user = await UserRepo.create(req.body);
 
     const { jwtid, token } = generateToken(user);
     user.tokenId = jwtid;
     await user.save();
-    res.json({ token, player: player.toSafeObject() }) //need to create the user creation
+    res.json({ token, user: user.toSafeObject() });
   }));
 
   router.get('/user', authenticated, (req,res)=> {
