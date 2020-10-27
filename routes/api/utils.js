@@ -28,7 +28,7 @@ function restoreUser(req, res, next){
       return next(err);
     }
 
-    const tokenId = payload.jwtid;
+    const tokenId = payload.jti;
 
     try {
       req.user = await UserRepo.findByTokenId(tokenId);

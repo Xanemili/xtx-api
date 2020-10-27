@@ -38,7 +38,7 @@ router.put('/', [email, password], asyncHandler(async (req, res, next) => {
 }))
 
 router.delete('/', [authenticated], asyncHandler(async (req,res ) => {
-  res.user.tokenId = null;
+  req.user.tokenId = null;
   await req.user.save();
   res.json({ message: 'success' })
 }));
