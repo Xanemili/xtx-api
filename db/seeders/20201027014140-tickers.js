@@ -3,7 +3,7 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.bulkInsert('Tickers', [
-      {ticker: 'CASH'}, {ticker: 'MSFT'}, {ticker: 'AAPL'}
+      {ticker: 'CASH', EODPrice: 1.00}, {ticker: 'MSFT', EODPrice: 123.33}, {ticker: 'AAPL', EODPrice: 111.1}
     ])
   },
 

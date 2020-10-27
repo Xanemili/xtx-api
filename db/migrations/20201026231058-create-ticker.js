@@ -12,6 +12,11 @@ module.exports = {
         type: Sequelize.STRING(8),
         allowNull: false
       },
+      EODPrice: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+        defaultValue: 0.00
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

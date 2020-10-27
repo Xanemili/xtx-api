@@ -28,6 +28,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false
       },
+      tradeTotal: {
+        type: Sequelize.FLOAT,
+        allowNull: false
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

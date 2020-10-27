@@ -1,13 +1,15 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const ledger = sequelize.define('Ledger', {
+  const Ledger = sequelize.define('Ledger', {
     userId: DataTypes.INTEGER,
     tickerId: DataTypes.INTEGER,
     price: DataTypes.FLOAT,
-    amount: DataTypes.INTEGER
+    amount: DataTypes.INTEGER,
+    tradeTotal: DataTypes.FLOAT,
   }, {});
-  ledger.associate = function(models) {
-    // associations can be defined here
+  Ledger.associate = function(models) {
+    Ledger.belongsTo(models.User, {foreignKey: 'userId'})
+    Ledger.belongsTo(models.Ticker, {foreignKey: 'tickerId'})
   };
-  return ledger;
+  return Ledger;
 };
