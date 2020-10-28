@@ -13,15 +13,6 @@ module.exports = {
         positionCost: 10000,
         positionValue: 10000,
       },
-      {
-        id: 2,
-        userId: 1,
-        tickerId: 1,
-        type: 'CASH',
-        amount: 10,
-        positionCost: 10,
-        positionValue: 10,
-      }
     ])
   },
 

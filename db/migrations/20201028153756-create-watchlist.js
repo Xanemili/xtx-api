@@ -13,14 +13,16 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Tickers'
-        }
+        },
+        unique: 'watchlistCombination'
       },
       listId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'Lists'
-        }
+        },
+        unique: 'watchlistCombination'
       },
       createdAt: {
         allowNull: false,

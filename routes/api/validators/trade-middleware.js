@@ -6,10 +6,6 @@ const orderType = check('orderType')
   .isIn(['BUY','SELL'])
   .withMessage('You must place a valid order type')
 
-const ticker = check('ticker')
-  .not().isEmpty()
-  .withMessage('Trades must done upon supported tickers')
-
 const price = check('price')
   .not().isEmpty()
   .withMessage('Prices must not be null')
@@ -20,7 +16,7 @@ const amount = check('amount')
   .isInt()
   .withMessage('Amounts must be integers')
 
-tradeValidation = [orderType, ticker, price, amount]
+tradeValidation = [orderType, price, amount]
 
 module.exports = {
   tradeValidation

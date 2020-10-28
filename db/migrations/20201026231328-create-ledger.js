@@ -32,6 +32,9 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false
       },
+      open: {
+        type: Sequelize.BOOLEAN,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

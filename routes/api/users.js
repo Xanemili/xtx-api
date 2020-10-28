@@ -1,8 +1,10 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const {validationResult } = require('express-validator')
-const UserRepo = require('../utils/user-functions')
-const {userAuth, userCreateAuth} = require('./user-auth-middleware')
+
+const {Holding, Ticker} = require('../../db/models')
+const UserFuncs = require('../utils/user-functions')
+const {userAuth, userCreateAuth} = require('./validators/user-auth-middleware')
 
 const { authenticated, generateToken } = require('../utils/utils');
 
@@ -15,7 +17,7 @@ const router = express.Router();
     }
 
     try {
-      const user = await UserRepo.create(req.body);
+      const user = await UserFuncs.create(req.body);
       const { jwtid, token } = generateToken(user);
       user.tokenId = jwtid;
       await user.save();
@@ -30,6 +32,25 @@ const router = express.Router();
       email: req.user.email,
       username: req.user.username,
     })
+  })
+
+  router.get('/portfolio', authenticated, async(req, res, next) => {
+    const portfolio = await Holding.findAll({
+      where: { userId: req.user.id },
+      attributes: ['amount','positionValue','positionCost'],
+      include: {
+        model: Ticker,
+        attributes: ['ticker']
+      }
+    });
+
+    if(portfolio){
+      res.json({
+        portfolio
+      })
+    };
+
+    next('err')
   })
 
 

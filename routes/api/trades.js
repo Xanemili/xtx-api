@@ -5,23 +5,19 @@ const {validationResult} = require('express-validator');
 const Trades = require('../utils/trade-functions');
 
 const { authenticated } = require('../utils/utils');
-const { tradeValidation } = require('./trade-middleware')
+const { tradeValidation } = require('./validators/trade-middleware')
 
 const router = express.Router();
 
-//DONT FORGET TO REIMPLEMENT TOKEN VALIDATION MIDDLEWARE
-
-router.post('/buy', tradeValidation, asyncHandler(async (req, res, next) => {
+router.post('/:security/buy', authenticated, tradeValidation, asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) {
     return next({ status: 422, errors: errors.array() })
   }
 
-  // need conditional logic for buying and selling
-
   try {
     const details = {...req.body}
-    const trade = await Trades.buy(details)
+    const trade = await Trades.buy(details, req.user.id, req.params.security)
     if(trade.error || !trade){
       throw error()
     }
@@ -31,17 +27,29 @@ router.post('/buy', tradeValidation, asyncHandler(async (req, res, next) => {
   }
 }))
 
-router.post('/sell', tradeValidation, asyncHandler(async (req,res,next) => {
+router.post('/:security/sell', authenticated, tradeValidation, asyncHandler(async (req,res,next) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) {
     return next({ status: 422, errors: errors.array() })
   };
 
   try {
+    const details = {...req.body}
+    const trade = await Trades.sell(details, req.user.id, req.params.security)
+    if(trade.error || !trade){
+      throw error()
+    }
+
+    res.json({message: 'trade complete!'})
 
   } catch (error) {
     next({status: 422, errors: 'trade failed'});
   }
 }))
 
+router.post('/cash', authenticated, asyncHandler(async(req,res,next) => {
+  const trade = await Trades.addCash(id);
+
+  res.json({message: 'Cash was added to the account'});
+}))
 module.exports = router;

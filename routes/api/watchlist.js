@@ -1,12 +1,15 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
-const {validationResult } = require('express-validator')
+const {check, validationResult } = require('express-validator')
 
 const {List, Ticker, Watchlist} = require('../../db/models');
-const list = require('../../db/models/list');
 const { authenticated} = require('../utils/utils');
 
 const router = express.Router();
+
+const listValidators = [
+  check('name').not().isEmpty().withMessage('Please provide a name for the List.')
+]
 
 router.get('/:listId', authenticated, asyncHandler( async (req,res,next)=> {
 
@@ -31,7 +34,13 @@ router.get('/:listId', authenticated, asyncHandler( async (req,res,next)=> {
   }
 }));
 
-router.post('/', authenticated, asyncHandler( async(req, res, next) => {
+router.post('/', authenticated, listValidators, asyncHandler( async(req, res, next) => {
+
+  const errors = validationResult(req);
+
+  if(!errors.isEmpty()){
+    return next({status: 422, errors: errors.array() })
+  }
 
   const newList = await List.create({
     name: req.body.name,
