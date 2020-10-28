@@ -1,6 +1,6 @@
-const { sequelize } = require('./models');
-const UserRepo = require('./user-functions');
-const {Ticker, Ledger, Holding} = require('../db/models')
+const { sequelize } = require('../../db/models');
+const UserRepo = require('../utils/user-functions');
+const {Ticker, Ledger, Holding} = require('../../db/models')
 
 async function buy(details) {
 

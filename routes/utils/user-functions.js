@@ -1,4 +1,4 @@
-const { User } = require('./models');
+const { User } = require('../../db/models');
 
 class NullUser {
   isValid() { return false }

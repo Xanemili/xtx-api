@@ -1,10 +1,10 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const {validationResult } = require('express-validator')
-const UserRepo = require('../../db/user-functions')
+const UserRepo = require('../utils/user-functions')
 const {userAuth, userCreateAuth} = require('./user-auth-middleware')
 
-const { authenticated, generateToken } = require('./utils');
+const { authenticated, generateToken } = require('../utils/utils');
 
 const router = express.Router();
 
@@ -31,5 +31,7 @@ const router = express.Router();
       username: req.user.username,
     })
   })
+
+
 
   module.exports = router;

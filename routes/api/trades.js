@@ -2,12 +2,14 @@ const express = require('express');
 const asyncHandler = require('express-async-handler');
 const {validationResult} = require('express-validator');
 
-const Trades = require('../../db/trade-functions');
+const Trades = require('../utils/trade-functions');
 
-const { authenticated } = require('./utils');
+const { authenticated } = require('../utils/utils');
 const { tradeValidation } = require('./trade-middleware')
 
 const router = express.Router();
+
+//DONT FORGET TO REIMPLEMENT TOKEN VALIDATION MIDDLEWARE
 
 router.post('/buy', tradeValidation, asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);

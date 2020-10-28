@@ -1,9 +1,9 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const { check, validationResult } = require('express-validator');
-const UserRepo = require('../../db/user-functions');
+const UserRepo = require('../utils/user-functions');
 
-const { authenticated, generateToken } = require('./utils');
+const { authenticated, generateToken } = require('../utils/utils');
 
 const router = express.Router();
 
