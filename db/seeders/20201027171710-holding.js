@@ -5,6 +5,7 @@ module.exports = {
 
     return queryInterface.bulkInsert('Holdings', [
       {
+        id: 1,
         userId: 1,
         tickerId: 1,
         type: 'CASH',
@@ -13,6 +14,7 @@ module.exports = {
         positionValue: 10000,
       },
       {
+        id: 2,
         userId: 1,
         tickerId: 1,
         type: 'CASH',

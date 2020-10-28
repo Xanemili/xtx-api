@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
   Ticker.associate = function(models) {
     Ticker.hasMany(models.Ledger, {foreignKey: 'tickerId'})
     Ticker.hasMany(models.Holding, {foreignKey: 'tickerId'})
+    Ticker.belongsToMany(models.List, {through: 'Watchlist', foreignKey: 'tickerId'})
   };
   return Ticker;
 };

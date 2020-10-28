@@ -27,7 +27,7 @@ router.post('/buy', tradeValidation, asyncHandler(async (req, res, next) => {
     }
     res.json({message: 'trade complete'})
   } catch (error) {
-    next({status: 422, errors: 'trade failed'});
+    next({status: 422, errors: 'Trade Failed'});
   }
 }))
 
