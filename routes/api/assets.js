@@ -8,7 +8,7 @@ const alpha = require('alphavantage')({
 
 const router = express.Router()
 
-router.get('/:asset', authenticated, asyncHandler( async(req,res,next) => {
+router.get('/:asset', asyncHandler( async(req,res,next) => {
   const data = await alpha.data.daily(req.params.asset)
 
   if(data){

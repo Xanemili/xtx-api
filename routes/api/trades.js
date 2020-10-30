@@ -9,7 +9,7 @@ const { tradeValidation } = require('./validators/trade-middleware')
 
 const router = express.Router();
 
-router.post('/:security/buy', authenticated, tradeValidation, asyncHandler(async (req, res, next) => {
+router.post('/:security/BUY', authenticated, tradeValidation, asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) {
     return next({ status: 422, errors: errors.array() })
@@ -27,7 +27,7 @@ router.post('/:security/buy', authenticated, tradeValidation, asyncHandler(async
   }
 }))
 
-router.post('/:security/sell', authenticated, tradeValidation, asyncHandler(async (req,res,next) => {
+router.post('/:security/SELL', authenticated, tradeValidation, asyncHandler(async (req,res,next) => {
   const errors = validationResult(req);
   if(!errors.isEmpty()) {
     return next({ status: 422, errors: errors.array() })
