@@ -45,16 +45,13 @@ const router = express.Router();
     });
 
     if(portfolio){
-
-      console.log(portfolio)
       res.json({
         portfolio
       })
     };
 
     next('err')
-  })
-
+  });
 
 
   module.exports = router;

@@ -11,7 +11,7 @@ const listValidators = [
   check('name').not().isEmpty().withMessage('Please provide a name for the List.')
 ]
 
-router.get('/:listId', authenticated, asyncHandler( async (req,res,next)=> {
+router.get('/', authenticated, asyncHandler( async (req,res,next)=> {
 
   const watchlist = await List.findAll({
     where: {userId: req.user.id},
