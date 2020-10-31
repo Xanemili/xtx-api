@@ -3,8 +3,8 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.bulkInsert('Lists', [
-      {id: 1, name: 'Watch List', description: "Stocks I am watching", userId: 1, createdAt: new Date(), updatedAt: new Date()},
-      {id: 2, name: 'Second Watch List', description: "This is a second watchlist", userId: 1, createdAt: new Date(), updatedAt: new Date()}
+      {name: 'Watch List', description: "Stocks I am watching", userId: 1, createdAt: new Date(), updatedAt: new Date()},
+      {name: 'Second Watch List', description: "This is a second watchlist", userId: 1, createdAt: new Date(), updatedAt: new Date()}
     ], {})
   },
 

@@ -21,7 +21,7 @@ module.exports = {
         }
       },
       price: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.FLOAT(2),
         allowNull: false
       },
       amount: {
@@ -32,7 +32,7 @@ module.exports = {
         type: Sequelize.FLOAT,
         allowNull: false
       },
-      open: {
+      isOpen: {
         type: Sequelize.BOOLEAN,
       },
       createdAt: {
@@ -45,6 +45,8 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: new Date ()
       }
+    },{
+      paranoid: true
     });
   },
   down: (queryInterface, Sequelize) => {

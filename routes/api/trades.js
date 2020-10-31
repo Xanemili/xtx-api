@@ -6,18 +6,27 @@ const Trades = require('../utils/trade-functions');
 
 const { authenticated } = require('../utils/utils');
 const { tradeValidation } = require('./validators/trade-middleware')
+const {checkTicker} = require('./validators/checkTicker')
+
 
 const router = express.Router();
 
 router.post('/:security/BUY', authenticated, tradeValidation, asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
+
+  const ticker = await checkTicker(req.params.security);
+
+  if(!ticker){
+    return next({status: 422, errors: 'Ticker is not supported.'})
+  }
+
   if(!errors.isEmpty()) {
     return next({ status: 422, errors: errors.array() })
   }
 
   try {
     const details = {...req.body}
-    const trade = await Trades.buy(details, req.user.id, req.params.security)
+    const trade = await Trades.buy(details, req.user.id, ticker)
     if(trade.error || !trade){
       throw error()
     }
@@ -48,8 +57,13 @@ router.post('/:security/SELL', authenticated, tradeValidation, asyncHandler(asyn
 }))
 
 router.post('/cash', authenticated, asyncHandler(async(req,res,next) => {
-  const trade = await Trades.addCash(id);
+  const trade = await Trades.addCash(req.user.id);
 
-  res.json({message: 'Cash was added to the account'});
+  if(trade){
+    res.json({message: 'Cash was added to the account'});
+  } else {
+    next({status: 422, errors: 'Cash was unable to be processed.'})
+  }
+
 }))
 module.exports = router;

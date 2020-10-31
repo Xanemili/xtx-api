@@ -2,7 +2,10 @@
 module.exports = (sequelize, DataTypes) => {
   const Ticker = sequelize.define('Ticker', {
     ticker: DataTypes.STRING,
-    EODPrice: DataTypes.FLOAT,
+    name: DataTypes.STRING,
+    market: DataTypes.STRING,
+    url: DataTypes.STRING
+
   }, {});
   Ticker.associate = function(models) {
     Ticker.hasMany(models.Ledger, {foreignKey: 'tickerId'})

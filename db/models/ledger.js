@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     price: DataTypes.FLOAT,
     amount: DataTypes.INTEGER,
     tradeTotal: DataTypes.FLOAT,
+    isOpen: DataTypes.BOOLEAN
   }, {});
   Ledger.associate = function(models) {
     Ledger.belongsTo(models.User, {foreignKey: 'userId'})

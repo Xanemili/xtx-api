@@ -10,12 +10,21 @@ module.exports = {
       },
       ticker: {
         type: Sequelize.STRING(8),
+        allowNull: false,
+        unique: true
+      },
+      name: {
+        type: Sequelize.STRING(255),
+        allowNull: false,
+      },
+      market: {
+        type: Sequelize.STRING(15),
         allowNull: false
       },
-      EODPrice: {
-        type: Sequelize.FLOAT,
-        allowNull: false,
-        defaultValue: 0.00
+      url: {
+        type: Sequelize.STRING(255),
+        allowNull: true,
+        defaultValue: ''
       },
       createdAt: {
         allowNull: false,

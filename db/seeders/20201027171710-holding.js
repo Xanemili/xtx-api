@@ -5,7 +5,6 @@ module.exports = {
 
     return queryInterface.bulkInsert('Holdings', [
       {
-        id: 1,
         userId: 1,
         tickerId: 1,
         type: 'CASH',

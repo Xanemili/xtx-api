@@ -6,22 +6,19 @@ const fetch = require('node-fetch')
 
 const router = express.Router()
 
-router.get('/:asset', asyncHandler( async(req,res,next) => {
+router.get('/:asset', authenticated, asyncHandler( async(req,res,next) => {
 
-  const historicalData = await fetch(`https://api.polygon.io/v2/aggs/ticker/${req.params.asset}/range/1/day/2019-01-01/2019-02-01?sort=asc&apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`)
-  const data = await historicalData.json()
   const company = await fetch(`https://api.polygon.io/v1/meta/symbols/${req.params.asset}/company?apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`);
   const companyInfo = await company.json()
   const news = await fetch(`https://api.polygon.io/v1/meta/symbols/${req.params.asset}/news?perpage=10&page=1&apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`)
   const companyNews = await news.json()
 
   let asset = {
-    data,
     companyInfo,
     companyNews
   }
 
-  if(data && companyInfo){
+  if(companyInfo && companyNews){
     res.json(asset)
   } else {
     const err = Error('Security is not supported')
@@ -30,5 +27,21 @@ router.get('/:asset', asyncHandler( async(req,res,next) => {
   }
 
 }));
+
+router.get('/:asset/historical/:start/:end', authenticated,  asyncHandler( async(req,res,next) => {
+  const url = `https://api.polygon.io/v2/aggs/ticker/` + `${req.params.asset}` + `/range/1/day/` + `${req.params.start}` + `/${req.params.end}?sort=asc&apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`
+  console.log(req.params)
+  console.log(url)
+  const historicalData = await fetch(url)
+  const data = await historicalData.json();
+
+  if(data) {
+    res.json(data);
+  } else {
+    const err = Error('There was an error retrieving the data.');
+    err.errors = ['Error in API provider.'];
+    next (err);
+  }
+}))
 
 module.exports = router;
