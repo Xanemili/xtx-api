@@ -75,9 +75,7 @@ async function buy(details, id, tickerAPI) {
 
       }
 
-      console.log(security)
       if(security){
-        console.log(security, 2)
         security.amount += Number.parseInt(amount, 10);
         security.positionValue += tradeTotal;
         security.positionCost += tradeTotal;
@@ -117,11 +115,13 @@ async function sell(details, id, ticker) {
     const result = await sequelize.transaction( async (sellTransaction)=> {
 
       let {price, amount} = details
+
       const tickerObj = await Ticker.findOne({ where: { ticker }});
       const tickerId = tickerObj.id;
 
+
       const security = await Holding.findOne({ where: { tickerId, userId: id}})
-      const ledgerList = await Ledger.findAll({ where: { tickerId, userId: id, isOpen: true}})
+      // const ledgerList = await Ledger.findAll({ where: { tickerId, userId: id, isOpen: true}})
 
       const cash = await Holding.findOne({
         where: {
@@ -134,6 +134,8 @@ async function sell(details, id, ticker) {
       if( security.amount - amount < 0){
         throw new Error('Not enough shares');
       }
+
+      console.log('here')
 
       const trade = await Ledger.create({
         userId: id,

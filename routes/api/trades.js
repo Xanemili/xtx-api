@@ -39,6 +39,7 @@ router.post('/:security/BUY', authenticated, tradeValidation, asyncHandler(async
 
 router.post('/:security/SELL', authenticated, tradeValidation, asyncHandler(async (req,res,next) => {
   const errors = validationResult(req);
+
   if(!errors.isEmpty()) {
     return next({ status: 422, errors: errors.array() })
   };

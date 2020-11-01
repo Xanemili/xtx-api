@@ -56,4 +56,12 @@ router.get('/search/:search', asyncHandler( async(req, res, next) => {
   }
 }))
 
+router.get('/news/news', asyncHandler( async(req,res,next) => {
+
+  const waiting = await fetch('https://newsapi.org/v2/top-headlines?apiKey=53eeb325d1d34dd19167158c3aa45798&language=en&category=business&country=us')
+  const news = await waiting.json()
+  res.json(news)
+}))
+
+
 module.exports = router;
