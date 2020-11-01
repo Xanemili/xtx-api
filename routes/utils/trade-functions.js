@@ -3,27 +3,29 @@ const UserRepo = require('../utils/user-functions');
 const {Ticker, Ledger, Holding} = require('../../db/models')
 
 async function buy(details, id, tickerAPI) {
+  const {
+    ticker,
+    name,
+    market
+  } = tickerAPI;
+
+  const tickerObj = await Ticker.findOrCreate({
+    where: {
+    ticker
+  },
+  defaults: {
+    market: market,
+    name: name,
+    ticker: ticker
+  }});
 
   try {
     const result = await sequelize.transaction( async (buyTransaction)=> {
 
-      const {
-        ticker,
-        name,
-        market
-      } = tickerAPI;
-
-      const tickerObj = await Ticker.findOrCreate({
-        where: {
-        ticker
-      },
-      defaults: {
-        market: market,
-        name: name,
-        ticker: ticker
-      }});
 
       let {price, amount} = details
+      price = parseFloat(price)
+      amount = parseFloat(amount)
 
       const tickerId = tickerObj[0].dataValues.id
 
@@ -64,23 +66,40 @@ async function buy(details, id, tickerAPI) {
         updatedAt: new Date()
       }, {transaction: buyTransaction});
 
-      const security = await Holding.findOrCreate(
-        { where: { tickerId, userId: id},
-          defaults: {
-          }
-        })
+      let security;
+      try{
+        security = await Holding.findOne(
+          { where: { tickerId, userId: id},
+        }, {transaction: buyTransaction})
+      } catch(e) {
 
-      security[0].amount += Number.parseInt(amount, 10);
-      security[0].positionValue += tradeTotal;
-      security[0].positionCost += tradeTotal;
-      security[0].type = 'EQUITY';
+      }
+
+      console.log(security)
+      if(security){
+        console.log(security, 2)
+        security.amount += Number.parseInt(amount, 10);
+        security.positionValue += tradeTotal;
+        security.positionCost += tradeTotal;
+        security.type = 'EQUITY';
+        await security.save();
+      } else {
+
+        await Holding.create({
+          tickerId,
+          userId: id,
+          type: 'EQUITY',
+          amount,
+          positionValue: tradeTotal,
+          positionCost: tradeTotal
+        })
+      }
 
       cash.amount -= tradeTotal;
       cash.positionCost -= tradeTotal;
       cash.positionValue -= tradeTotal;
 
 
-      await security[0].save();
       await cash.save();
 
       return [trade, cashtrade]

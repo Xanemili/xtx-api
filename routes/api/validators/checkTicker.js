@@ -7,11 +7,12 @@ const fetch = require('node-fetch')
 const rest = restClient(APIKEY)
 
 const checkTicker = async (ticker) => {
-  const response = await fetch(`https://api.polygon.io/v2/reference/tickers?sort=ticker&search=${ticker}&perpage=3&page=1&apiKey=${APIKEY}`)
+  const response = await fetch(`https://api.polygon.io/v1/meta/symbols/${ticker}/company?apiKey=${APIKEY}`)
   let tickers = await response.json()
-  let result = tickers.tickers.filter( symbol => symbol.ticker === ticker);
-  if(result.length === 1){
-    return result[0]
+  let result = {ticker: tickers.symbol, market: tickers.type, name: tickers.name}
+
+  if(result){
+    return result
   } else {
     return;
   }

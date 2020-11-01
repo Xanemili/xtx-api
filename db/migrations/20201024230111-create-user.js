@@ -27,11 +27,11 @@ module.exports = {
         type: Sequelize.STRING(50)
       },
       address: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING(100)
       },
       phone: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING(10),
       },
       hashedPassword: {

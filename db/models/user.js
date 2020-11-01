@@ -50,7 +50,8 @@ module.exports = (sequelize, DataTypes) => {
       }
   }, {});
   User.associate = function(models) {
-    // associations can be defined here
+    User.hasMany(models.Holding, {foreignKey: 'userId'})
+    User.hasMany(models.Ledger, {foreignKey: 'LedgerId'})
   };
 
   User.prototype.isValid = () => true;

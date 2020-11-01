@@ -13,7 +13,7 @@ const listValidators = [
 
 router.get('/', authenticated, asyncHandler( async (req,res,next)=> {
 
-  const watchlist = await List.findAll({
+  const watchlist = await List.findOne({
     where: {userId: req.user.id},
     include: {
       model: Ticker,
@@ -64,15 +64,19 @@ router.delete('/:listId', authenticated, asyncHandler( async (req, res, next) =>
   }
 }))
 
-router.post('/:listId/security/:security', authenticated, asyncHandler( async (req,res,next) => {
+router.post('/security/:security', authenticated, asyncHandler( async (req,res,next) => {
 
   const ticker = await Ticker.findOne({where: {
     ticker: req.params.security
   }});
 
+  const list = await List.findOne({where: {
+    userId: req.user.id
+  }})
+
   const security = await Watchlist.create({
     tickerId: ticker.id,
-    listId: req.body.listId
+    listId: list.id
   });
 
   if(security){
@@ -83,16 +87,22 @@ router.post('/:listId/security/:security', authenticated, asyncHandler( async (r
   }
 }))
 
-router.delete('/:security', authenticated, asyncHandler( async (req, res, next) => {
+router.delete('/security/:security', authenticated, asyncHandler( async (req, res, next) => {
 
+  console.log(req.params)
   const ticker = await Ticker.findOne({where: {
     ticker: req.params.security
   }});
 
+
   const securityToDelete = await Watchlist.findOne({
     where: {
       tickerId: ticker.id,
-      listId: req.body.listId
+    }, include: {
+      model: List,
+      where: {
+        userId: req.user.id
+      }
     }
   });
 

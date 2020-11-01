@@ -3,13 +3,15 @@ const {check} = require('express-validator');
 const email = check('email')
   .isEmail()
   .withMessage('Please provide a valid email address')
-  .custom( value => {
-    return User.findUserByEmail(value).then( user => {
-      if(user) {
-        return Promise.reject('This E-mail already exists.')
-      }
-    })
-  })
+  // .custom( value => {
+  //   return User.findUserByEmail(value).then( user => {
+  //     if(user) {
+  //       return Promise.reject('This E-mail already exists.')
+  //     } else{
+  //       Promise.resolve();
+  //     }
+  //   })
+  // })
   .normalizeEmail();
 
 const username = check('username')

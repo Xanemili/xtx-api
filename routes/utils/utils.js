@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const bearerToken = require('express-bearer-token');
 const uuid = require('uuid').v4
 const UserRepo = require('../utils/user-functions')
+const {User} = require('../../db/models');
 
 const { jwtConfig: { secret, expiresIn } } = require('../../config');
 
@@ -31,16 +32,17 @@ function restoreUser(req, res, next){
     const tokenId = payload.jti;
 
     try {
-      req.user = await UserRepo.findByTokenId(tokenId);
+      req.user = await User.findByPk(payload.data.id);
+
     } catch(e){
       return next(e);
     }
 
-    if(!req.user.isValid()){
-      return next({ status: 404, message: 'user session was no found'});
+    if(!req.user){
+      return next({ status: 404, message: 'user session was not found'}).end();
     }
 
-    next();
+    return next();
   });
 }
 
