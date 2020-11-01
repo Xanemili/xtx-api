@@ -1,10 +1,10 @@
-const {APIKEY} = require('../../../config/')
-const {
-  restClient
-} = require('polygon.io')
-const fetch = require('node-fetch')
+// const {APIKEY} = require('../../../config/')
+// const {
+//   restClient
+// } = require('polygon.io')
+// const fetch = require('node-fetch')
 
-const rest = restClient(APIKEY)
+// const rest = restClient(APIKEY)
 
 const checkTicker = async (ticker) => {
   const response = await fetch(`https://api.polygon.io/v1/meta/symbols/${ticker}/company?apiKey=${APIKEY}`)
