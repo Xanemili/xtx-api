@@ -2,7 +2,7 @@
 // const {
 //   restClient
 // } = require('polygon.io')
-// const fetch = require('node-fetch')
+const fetch = require('node-fetch')
 
 // const rest = restClient(APIKEY)
 
