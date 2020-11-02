@@ -13,7 +13,7 @@ const router = express.Router();
 
   router.post('/', userAuth, userCreateAuth, asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
-    console.log(req.body)
+
     if(!errors.isEmpty()) {
       return next({ status: 422, errors: errors.array() });
     }
@@ -23,7 +23,6 @@ const router = express.Router();
       const { jwtid, token } = generateToken(user);
       user.tokenId = jwtid;
       await user.save();
-      console.log(user)
       const ledger = await Ledger.create({
         userId: user.id,
         tickerId: 1,
@@ -85,7 +84,6 @@ const router = express.Router();
       console.log(e)
     }
 
-      console.log(portfolio);
     if(portfolio){
       res.json({
         portfolio

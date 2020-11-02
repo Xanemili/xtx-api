@@ -24,8 +24,8 @@ async function buy(details, id, tickerAPI) {
 
 
       let {price, amount} = details
-      price = parseFloat(price)
-      amount = parseFloat(amount)
+      price = parseInt(price)
+      amount = parseInt(amount)
 
       const tickerId = tickerObj[0].dataValues.id
 
@@ -39,6 +39,7 @@ async function buy(details, id, tickerAPI) {
       )
 
       const tradeTotal = amount * price;
+      console.log(tradeTotal, amount, price)
 
       if( cash.positionValue - tradeTotal < 0){
         throw new Error('Not enough cash');
@@ -97,7 +98,7 @@ async function buy(details, id, tickerAPI) {
       cash.positionCost -= tradeTotal;
       cash.positionValue -= tradeTotal;
 
-
+      console.log(cash);
       await cash.save();
 
       return [trade, cashtrade]
@@ -134,8 +135,6 @@ async function sell(details, id, ticker) {
       if( security.amount - amount < 0){
         throw new Error('Not enough shares');
       }
-
-      console.log('here')
 
       const trade = await Ledger.create({
         userId: id,

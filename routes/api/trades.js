@@ -25,7 +25,6 @@ router.post('/:security/BUY', authenticated, tradeValidation, asyncHandler(async
   }
 
   try {
-    console.log(ticker, req.user.id)
     const details = {...req.body}
     const trade = await Trades.buy(details, req.user.id, ticker)
     if(trade.error || !trade){

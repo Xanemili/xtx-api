@@ -89,7 +89,6 @@ router.post('/security/:security', authenticated, asyncHandler( async (req,res,n
 
 router.delete('/security/:security', authenticated, asyncHandler( async (req, res, next) => {
 
-  console.log(req.params)
   const ticker = await Ticker.findOne({where: {
     ticker: req.params.security
   }});
