@@ -75,10 +75,17 @@ const router = express.Router();
     next('err')
   });
 
-  router.get('/history', authenticated, async(req,res,next) => {
+  router.get('/portfolio/history', authenticated, async(req,res,next) => {
 
-      const portfolio = await Ledger.findAll({where: {userId: req.user.id, tickerId: 2}});
+    let portfolio
+    try {
 
+      portfolio = await Ledger.findAll({where: {userId: req.user.id, tickerId: 2}, order: [['updatedAt', 'ASC']]});
+    } catch (e){
+      console.log(e)
+    }
+
+      console.log(portfolio);
     if(portfolio){
       res.json({
         portfolio
