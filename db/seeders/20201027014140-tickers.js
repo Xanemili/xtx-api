@@ -21,8 +21,6 @@ module.exports = {
       // let tickers = data.tickers
       // let page = data.page + 1
 
-      // console.log(numberOfRequests)
-
       // while (page < numberOfRequests) {
       //   const newPage = await rest.reference.tickers({
       //     sort: 'ticker',

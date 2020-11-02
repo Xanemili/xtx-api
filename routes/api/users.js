@@ -81,7 +81,7 @@ const router = express.Router();
 
       portfolio = await Ledger.findAll({where: {userId: req.user.id, tickerId: 2}, order: [['updatedAt', 'ASC']]});
     } catch (e){
-      console.log(e)
+      next('Error in data retrieval')
     }
 
     if(portfolio){

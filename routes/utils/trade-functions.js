@@ -39,7 +39,6 @@ async function buy(details, id, tickerAPI) {
       )
 
       const tradeTotal = amount * price;
-      console.log(tradeTotal, amount, price)
 
       if( cash.positionValue - tradeTotal < 0){
         throw new Error('Not enough cash');
@@ -98,7 +97,6 @@ async function buy(details, id, tickerAPI) {
       cash.positionCost -= tradeTotal;
       cash.positionValue -= tradeTotal;
 
-      console.log(cash);
       await cash.save();
 
       return [trade, cashtrade]
