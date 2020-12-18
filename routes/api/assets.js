@@ -6,43 +6,29 @@ const fetch = require('node-fetch')
 
 const router = express.Router()
 
-router.get('/:asset', authenticated, asyncHandler( async(req,res,next) => {
+router.get('/:asset/:date/:range', authenticated, asyncHandler( async(req,res,next) => {
 
-  const company = await fetch(`https://api.polygon.io/v1/meta/symbols/${req.params.asset}/company?apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`);
-  const companyInfo = await company.json()
-  const news = await fetch(`https://api.polygon.io/v1/meta/symbols/${req.params.asset}/news?perpage=10&page=1&apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`)
-  const companyNews = await news.json()
+  const responseAPI = await fetch(`https://sandbox.iexapis.com/stable/stock/${req.params.asset}/batch?types=quote,news,chart&range=${req.params.range}&token=Tsk_d83ce3387c9b44d99c7060e036faad15&chartInterval=5`);
+  console.log(responseAPI)
+  if (responseAPI.ok) {
+    const assetInfo = await responseAPI.json()
 
-  let asset = {
-    companyInfo,
-    companyNews
-  }
-
-  if(companyInfo && companyNews){
-    res.json(asset)
+    if(assetInfo){
+      res.json(assetInfo)
+    } else {
+      const err = Error('Security is not supported')
+      err.errors = ['security is not supported']
+      next (err)
+    }
   } else {
-    const err = Error('Security is not supported')
-    err.errors = ['security is not supported']
-    next (err)
+    const err = Error('API is not responding.')
+    err.errors = ['No API response.']
+    next(err)
   }
 
 }));
 
-router.get('/:asset/historical/:start/:end', authenticated,  asyncHandler( async(req,res,next) => {
-  const url = `https://api.polygon.io/v2/aggs/ticker/` + `${req.params.asset}` + `/range/1/day/` + `${req.params.start}` + `/${req.params.end}?sort=asc&apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`
-  const historicalData = await fetch(url)
-  const data = await historicalData.json();
-
-  if(data) {
-    res.json(data);
-  } else {
-    const err = Error('There was an error retrieving the data.');
-    err.errors = ['Error in API provider.'];
-    next (err);
-  }
-}))
-
-router.get('/search/:search', asyncHandler( async(req, res, next) => {
+router.get('/search/:search', authenticated, asyncHandler( async(req, res, next) => {
   const url = `https://api.polygon.io/v2/reference/tickers?sort=ticker&search=${req.params.search}&perpage=10&page=1&apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`
   const searchRes = await fetch(url);
   const data = await searchRes.json();
