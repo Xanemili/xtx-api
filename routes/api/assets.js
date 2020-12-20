@@ -3,12 +3,12 @@ const asyncHandler = require('express-async-handler');
 const {validationResult} = require('express-validator');
 const { authenticated } = require('../utils/utils');
 const fetch = require('node-fetch')
+const {fetchAsset, fetchTimeSeries} = require('../utils/iex')
 
 const router = express.Router()
 
-router.get('/:asset/:date/:range', authenticated, asyncHandler( async(req,res,next) => {
-
-  const responseAPI = await fetch(`https://sandbox.iexapis.com/stable/stock/${req.params.asset}/batch?types=quote,news,chart&range=${req.params.range}&token=Tsk_d83ce3387c9b44d99c7060e036faad15&chartInterval=5`);
+router.get('/:asset/:date?', authenticated, asyncHandler( async(req,res,next) => {
+  responseAPI = await fetchAsset(req.params.asset)
   console.log(responseAPI)
   if (responseAPI.ok) {
     const assetInfo = await responseAPI.json()
@@ -25,8 +25,26 @@ router.get('/:asset/:date/:range', authenticated, asyncHandler( async(req,res,ne
     err.errors = ['No API response.']
     next(err)
   }
-
 }));
+
+router.get('/timeseries/:asset/:range?', authenticated, asyncHandler(async(req, res, next) => {
+  responseAPI = await fetchTimeSeries(req.params.asset, req.params.range)
+  if (responseAPI.ok) {
+    const timeSeries = await responseAPI.json()
+    if (timeSeries) {
+      res.json(timeSeries)
+    } else {
+      const err = Error('Timeseries data was not found')
+      err.errors = ['No timeseries data for this time period']
+      next(err)
+    }
+  } else {
+    const err = Error('API Response Error')
+    err.status = responseAPI.status
+    err.errors = responseAPI.statusText
+    next(err)
+  }
+}))
 
 router.get('/search/:search', authenticated, asyncHandler( async(req, res, next) => {
   const url = `https://api.polygon.io/v2/reference/tickers?sort=ticker&search=${req.params.search}&perpage=10&page=1&apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`

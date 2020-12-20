@@ -1,9 +1,9 @@
 const router = require('express').Router();
 
-const routes = ['users', 'session', 'trades', 'watchlist', 'assets'];
-
-for (let route of routes) {
-  router.use(`/${route}`, require(`./${route}`));
-}
+router.use('/users', require('./users'))
+router.use('/session', require('./session'))
+router.use('/trades', require('./trades'))
+router.use('/watchlist', require('./watchlist'))
+router.use('/assets', require('./assets'))
 
 module.exports = router;

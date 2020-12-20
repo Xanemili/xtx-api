@@ -11,5 +11,8 @@ module.exports = {
     secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRES_IN,
   },
-  APIKEY: process.env.POLYGONIO_API_KEY
+  api: {
+    iex_secret: process.env.IEX_CLOUD_KEY,
+    iex_sandbox: process.env.IEX_SANDBOX,
+  } 
 };
