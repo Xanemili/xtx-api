@@ -1,33 +1,31 @@
 const { sequelize } = require('../../db/models');
 const UserRepo = require('../utils/user-functions');
-const {Ticker, Ledger, Holding} = require('../../db/models')
+const { Ticker, Ledger, Holding } = require('../../db/models')
 
 async function buy(details, id, tickerAPI) {
   const {
-    ticker,
-    name,
-    market
+    ticker
   } = tickerAPI;
 
-  const tickerObj = await Ticker.findOrCreate({
-    where: {
-    ticker
-  },
-  defaults: {
-    market: market,
-    name: name,
-    ticker: ticker
-  }});
+  let tickerObj = await Ticker.findOne({
+    where: { ticker }
+  });
 
+  if (!tickerObj) {
+    tickerObj = await Ticker.create({
+      ticker: ticker,
+    })
+  }
+
+  console.log(details)
   try {
-    const result = await sequelize.transaction( async (buyTransaction)=> {
+    const result = await sequelize.transaction(async (buyTransaction) => {
 
-
-      let {price, amount} = details
+      let { price, amount } = details
       price = parseInt(price)
       amount = parseInt(amount)
 
-      const tickerId = tickerObj[0].dataValues.id
+      const tickerId = tickerObj.dataValues.id
 
       const cash = await Holding.findOne(
         {
@@ -40,7 +38,7 @@ async function buy(details, id, tickerAPI) {
 
       const tradeTotal = amount * price;
 
-      if( cash.positionValue - tradeTotal < 0){
+      if (cash.positionValue - tradeTotal < 0) {
         throw new Error('Not enough cash');
       }
 
@@ -53,29 +51,30 @@ async function buy(details, id, tickerAPI) {
         isOpen: true,
         createdAt: new Date(),
         updatedAt: new Date()
-      }, {transaction: buyTransaction});
+      }, { transaction: buyTransaction });
 
       const cashtrade = await Ledger.create({
         userId: id,
         tickerId: cash.tickerId,
         price,
-        amount: amount*-1,
-        tradeTotal: tradeTotal*-1,
+        amount: amount * -1,
+        tradeTotal: tradeTotal * -1,
         isOpen: false,
         createdAt: new Date(),
         updatedAt: new Date()
-      }, {transaction: buyTransaction});
+      }, { transaction: buyTransaction });
 
       let security;
-      try{
+      try {
         security = await Holding.findOne(
-          { where: { tickerId, userId: id},
-        }, {transaction: buyTransaction})
-      } catch(e) {
+          {
+            where: { tickerId, userId: id },
+          }, { transaction: buyTransaction })
+      } catch (e) {
 
       }
 
-      if(security){
+      if (security) {
         security.amount += Number.parseInt(amount, 10);
         security.positionValue += tradeTotal;
         security.positionCost += tradeTotal;
@@ -105,32 +104,32 @@ async function buy(details, id, tickerAPI) {
     return result;
 
   } catch (error) {
-    return {error}
+    return { error }
   }
 }
 
 async function sell(details, id, ticker) {
   try {
-    const result = await sequelize.transaction( async (sellTransaction)=> {
+    const result = await sequelize.transaction(async (sellTransaction) => {
 
-      let {price, amount} = details
+      let { price, amount } = details
 
-      const tickerObj = await Ticker.findOne({ where: { ticker }});
+      const tickerObj = await Ticker.findOne({ where: { ticker } });
       const tickerId = tickerObj.id;
 
 
-      const security = await Holding.findOne({ where: { tickerId, userId: id}})
-      // const ledgerList = await Ledger.findAll({ where: { tickerId, userId: id, isOpen: true}})
+      const security = await Holding.findOne({ where: { tickerId, userId: id } })
 
       const cash = await Holding.findOne({
         where: {
           userId: id,
           type: 'CASH'
-        }})
+        }
+      })
 
       const tradeTotal = amount * price;
 
-      if( security.amount - amount < 0){
+      if (security.amount - amount < 0) {
         throw new Error('Not enough shares');
       }
 
@@ -138,12 +137,12 @@ async function sell(details, id, ticker) {
         userId: id,
         tickerId,
         price,
-        amount: amount*-1,
+        amount: amount * -1,
         tradeTotal,
         isOpen: false,
         createdAt: new Date(),
         updatedAt: new Date()
-      }, {transaction: sellTransaction});
+      }, { transaction: sellTransaction });
 
       const cashtrade = await Ledger.create({
         userId: id,
@@ -154,7 +153,7 @@ async function sell(details, id, ticker) {
         tradeTotal: tradeTotal,
         createdAt: new Date(),
         updatedAt: new Date()
-      }, {transaction: sellTransaction});
+      }, { transaction: sellTransaction });
 
       security.amount -= Number.parseInt(amount, 10);
       security.positionValue -= tradeTotal;
@@ -167,41 +166,41 @@ async function sell(details, id, ticker) {
       await security.save();
       await cash.save();
 
-      return {trade, cashtrade}
+      return { trade, cashtrade }
     });
 
     return result;
 
   } catch (error) {
-    const errorObj = {error}
+    const errorObj = { error }
     return errorObj
   }
 }
 
 const addCash = async (id) => {
 
-    const cash = await Holding.findOne({where: {userId: id, type: 'CASH'}})
+  const cash = await Holding.findOne({ where: { userId: id, type: 'CASH' } })
 
-    cash.amount += 1000;
-    cash.positionValue += 1000;
+  cash.amount += 1000;
+  cash.positionValue += 1000;
 
-    let price = 1.00;
-    let amount = 1000;
-    let isOpen = false;
-    let tradeTotal = 1000;
+  let price = 1.00;
+  let amount = 1000;
+  let isOpen = false;
+  let tradeTotal = 1000;
 
-    const cashtrade = await Ledger.create({
-      userId: id,
-      tickerId: cash.tickerId,
-      price,
-      amount,
-      isOpen,
-      tradeTotal,
-    });
+  const cashtrade = await Ledger.create({
+    userId: id,
+    tickerId: cash.tickerId,
+    price,
+    amount,
+    isOpen,
+    tradeTotal,
+  });
 
-    await cash.save();
+  await cash.save();
 
-    return cashtrade
+  return cashtrade
 }
 
 module.exports = {
