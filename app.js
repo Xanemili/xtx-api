@@ -5,6 +5,7 @@ const path = require('path');
 const logger = require('morgan');
 const helmet = require('helmet')
 const routes = require('./routes');
+const cron = require('node-cron')
 
 const app = express();
 
@@ -20,6 +21,10 @@ app.use(routes);
 app.use((req, res, next) => {
   next(createError(404));
 });
+
+cron.schedule('59 23 * * *', () => {
+  console.log('runnign a task every minute');
+})
 
 app.use((err, req, res, next)=> {
   res.status(err.status || 500);

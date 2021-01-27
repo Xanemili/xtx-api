@@ -1,7 +1,7 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const {validationResult } = require('express-validator')
-const {Op} = require('sequelize')
+const {Op, fn, col} = require('sequelize')
 
 const {Holding, Ticker} = require('../../db/models')
 const UserFuncs = require('../utils/user-functions')
@@ -56,13 +56,14 @@ const router = express.Router();
         userId: req.user.id,
         [Op.or]: [{isOpen: true}, {tickerId: 1}]
        },
-      attributes: ['amount', 'tradeTotal'],
+      attributes: [[fn('sum', col('tradeTotal')), 'total'], [fn('sum', col('amount')), 'amount']],
       include: {
         model: Ticker,
         attributes: ['ticker']
-      }
+      },
+      group: ['Ticker.id']
     });
-    console.log(portfolio)
+    console.log(`portfolio ${portfolio}`)
     if(portfolio){
       res.json({
         portfolio
@@ -76,7 +77,6 @@ const router = express.Router();
 
     let portfolio
     try {
-
       portfolio = await Ledger.findAll({where: {userId: req.user.id, tickerId: 2}, order: [['updatedAt', 'ASC']]});
     } catch (e){
       next('Error in data retrieval')
