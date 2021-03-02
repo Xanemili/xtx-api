@@ -1,4 +1,4 @@
-
+'use strict'
 const fetch = require('node-fetch')
 
 const fetchAsset = async (asset, range='1m', chartInterval=5, types=['quote', 'news', 'chart','company','peers']) => {
@@ -21,8 +21,22 @@ const fetchSearch = async(searchTerm) => {
   }
 }
 
+const updateAssetPrices = async(tickers) => {
+  let ticker_string = tickers.reduce( (acc, ele, index) => 
+  {
+    if(index === 0){
+      return `${ele.ticker}`
+    }
+    return acc + `,${ele.ticker}`
+  },'')
+  const responseAPI = await fetch(`https://sandbox.iexapis.com/stable/stock/market/batch?symbols=${ticker_string}&types=price&token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
+  let price_list = await responseAPI.json()
+  return price_list
+}
+
 module.exports ={
   fetchAsset,
   fetchTimeSeries,
-  fetchSearch
+  fetchSearch,
+  updateAssetPrices
 }

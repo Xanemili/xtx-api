@@ -65,11 +65,17 @@ router.delete('/:listId', authenticated, asyncHandler( async (req, res, next) =>
 }))
 
 router.post('/security/:security', authenticated, asyncHandler( async (req,res,next) => {
-
-  const ticker = await Ticker.findOne({where: {
+  // crude implementation. only works with the one watchlist at the moment. Need to alter if adding multiple list features.
+  let ticker = await Ticker.findOne({where: {
     ticker: req.params.security
   }});
 
+  if (!ticker) {
+    ticker = await Ticker.create({
+      ticker: req.params.security,
+    })
+  }
+  
   const list = await List.findOne({where: {
     userId: req.user.id
   }})

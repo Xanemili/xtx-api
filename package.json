@@ -22,7 +22,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "alphavantage": "^2.2.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "debug": "^2.6.9",

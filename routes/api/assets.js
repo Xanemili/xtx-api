@@ -10,7 +10,6 @@ const router = express.Router()
 router.get('/search/:search', asyncHandler( async(req, res, next) => {
   console.log(req.params.search)
   let searchResults = await fetchSearch(req.params.search)
-  console.log('test')
 
   if(searchResults){
     res.json(searchResults)
