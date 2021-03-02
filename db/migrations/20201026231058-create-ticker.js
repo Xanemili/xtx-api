@@ -15,11 +15,9 @@ module.exports = {
       },
       name: {
         type: Sequelize.STRING(255),
-        allowNull: false,
       },
       market: {
         type: Sequelize.STRING(15),
-        allowNull: false
       },
       url: {
         type: Sequelize.STRING(255),

@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bearerToken = require('express-bearer-token');
 const uuid = require('uuid').v4
-const UserRepo = require('../utils/user-functions')
 const {User} = require('../../db/models');
 
 const { jwtConfig: { secret, expiresIn } } = require('../../config');

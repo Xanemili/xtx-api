@@ -26,13 +26,14 @@ router.post('/:security/BUY', authenticated, tradeValidation, asyncHandler(async
 
   try {
     const details = {...req.body}
-    const trade = await Trades.buy(details, req.user.id, ticker)
-    if(trade.error || !trade){
-      throw error()
-    }
+    const trade = await Trades.buy(details, req.user.id)
+
+    console.log(trade)
     res.json({message: 'trade complete'})
   } catch (error) {
-    next({status: 422, errors: 'Trade Failed'});
+    console.log(error)
+    next(error);
+    //{status: 422, errors: 'Trade Failed'}
   }
 }))
 
@@ -59,12 +60,10 @@ router.post('/:security/SELL', authenticated, tradeValidation, asyncHandler(asyn
 
 router.post('/cash', authenticated, asyncHandler(async(req,res,next) => {
   const trade = await Trades.addCash(req.user.id);
-
   if(trade){
     res.json({message: 'Cash was added to the account'});
   } else {
     next({status: 422, errors: 'Cash was unable to be processed.'})
   }
-
 }))
 module.exports = router;
