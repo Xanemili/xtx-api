@@ -31,7 +31,16 @@ router.post('/', userAuth, userCreateAuth, asyncHandler(async (req, res, next) =
       price: 1,
       amount: 1000,
       tradeTotal: 1000,
-      isOpen: false,
+      isOpen: true,
+    })
+
+    await Ledger.create({
+      userId: user.id,
+      tickerId: 2,
+      price: 1000,
+      amount: 1000,
+      tradeTotal: 1000,
+      isOpen: false
     })
 
     await List.create({
@@ -47,8 +56,9 @@ router.post('/', userAuth, userCreateAuth, asyncHandler(async (req, res, next) =
 }));
 
 router.get('/portfolio', authenticated, async (req, res, next) => {
+  console.log(req.user)
   try {
-    const portfolio = await Ledger.findAll({
+    const assets = await Ledger.findAll({
       where: {
         userId: req.user.id,
         [Op.or]: [{ isOpen: true }]
@@ -60,41 +70,41 @@ router.get('/portfolio', authenticated, async (req, res, next) => {
       },
       group: ['Ticker.id']
     });
-
-    if (portfolio) {
-      res.json({
-        portfolio
-      })
+    
+    if (assets) {
+      res.json(assets)
     };
   } catch (e) {
+    console.error(e)
     next(e)
   }
-
-
 });
 
 router.get('/portfolio/history', authenticated, async (req, res, next) => {
 
-  // this currently on includes trades on the date they were made.... need to fix.
   try {
-    let portfolio = await Ledger.findAll({
+    const portfolio = await Ledger.findAll({
+      include: [{
+        model: Ticker,
+        where: {
+          ticker: 'PORT_VAL'
+        },
+        attributes: []
+      }],
       where: {
-        [Op.and]: [
-          { userId: req.user.id },
-          { isOpen: true }
-        ]
+        userId: req.user.id
       },
-      attributes: [[fn('sum', col('tradeTotal')), 'total'], [fn('DATE_TRUNC', 'day', sequelize.col('createdAt')), 'date']],
-      group: ['date']
-    });
+      attributes: ['id','updatedAt','price', 'tradeTotal']
+    })
 
     if (portfolio) {
-      res.json({
+      res.json(
         portfolio
-      })
+      )
     }
   } catch (e) {
-    next('err')
+    console.error(e)
+    next(e)
   }
 })
 

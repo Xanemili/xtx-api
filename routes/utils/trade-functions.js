@@ -128,7 +128,7 @@ async function sell(details, id, ticker) {
       tickerId: 1,
       price,
       amount: amount,
-      isOpen: false,
+      isOpen: true,
       tradeTotal: tradeTotal,
       createdAt: new Date(),
       updatedAt: new Date()

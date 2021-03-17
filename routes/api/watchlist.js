@@ -24,7 +24,7 @@ router.get('/', authenticated, asyncHandler( async (req,res,next)=> {
   })
 
   if(watchlist) {
-    res.json({watchlist})
+    res.json(watchlist)
   } else {
     const err = Error('No lists found.');
     err.errors = [`Lists were not found`];
