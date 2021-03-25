@@ -99,11 +99,9 @@ async function sell(details, id, ticker) {
     }
 
     while (currentAmount > 0 && i < openPositions.length) {
-      console.log(openPositions[i])
       if (currentAmount >= openPositions[i].dataValues.amount) {
         currentAmount = currentAmount - openPositions[i].dataValues.amount;
         openPositions[i].isOpen = false;
-        console.log(openPositions[i])
         openPositions[i].save()
         i++;
       } else {

@@ -8,7 +8,6 @@ const {fetchAsset, fetchTimeSeries, fetchSearch} = require('../utils/iex')
 const router = express.Router()
 
 router.get('/search/:search', asyncHandler( async(req, res, next) => {
-  console.log(req.params.search)
   let searchResults = await fetchSearch(req.params.search)
 
   if(searchResults){

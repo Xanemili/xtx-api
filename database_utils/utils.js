@@ -30,7 +30,6 @@ const updatePortfolioValuesDB = async () => {
       //   ]
       // },
     })
-    console.log(users)
     for (let i = 0; i < users.length; i++) {
       let total = 0
       let cost = 0
@@ -46,8 +45,6 @@ const updatePortfolioValuesDB = async () => {
         amount: total,
         price: cost
       })
-      console.log(total, cost)
-      console.log(port)
     }
 
     return

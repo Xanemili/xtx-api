@@ -60,7 +60,6 @@ router.post('/:security/SELL', authenticated, tradeValidation, asyncHandler(asyn
 
 router.post('/cash', authenticated, asyncHandler(async(req,res,next) => {
   const trade = await Trades.addCash(req.user.id);
-  console.log(trade)
   if(trade){
     res.json(trade);
   } else {

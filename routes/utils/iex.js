@@ -14,7 +14,6 @@ const fetchTimeSeries = async (asset, range='1m', interval=1) => {
 
 const fetchSearch = async(searchTerm) => {
   const responseAPI = await fetch(`https://sandbox.iexapis.com/stable/search/${searchTerm}?token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
-  console.log(responseAPI)
   if (responseAPI.ok){
     let res = await responseAPI.json()
     return res

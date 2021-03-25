@@ -56,7 +56,6 @@ router.post('/', userAuth, userCreateAuth, asyncHandler(async (req, res, next) =
 }));
 
 router.get('/portfolio', authenticated, async (req, res, next) => {
-  console.log(req.user)
   try {
     const assets = await Ledger.findAll({
       where: {
