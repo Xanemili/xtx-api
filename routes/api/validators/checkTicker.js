@@ -3,14 +3,15 @@ const fetch = require('node-fetch')
 
 const checkTicker = async (ticker) => {
   const response = await fetch(`https://sandbox.iexapis.com/stable/tops/last?symbols=${ticker}&token=${iex_sandbox}`)
-  let tickers = await response.json()
-  let result = {ticker: tickers[0].symbol, market: tickers[0].type}
-  
-  if(result){
-    return result
+
+  let [ iex_ticker ] = await response.json()
+
+  if ( iex_ticker) {
+    return { iex_ticker: iex_ticker.symbol, iex_market: iex_ticker.type}
   } else {
-    return;
+    reject( new Error('Invalid Ticker. Please provide a valid ticker.') )
   }
+
 }
 
 module.exports = { checkTicker }
