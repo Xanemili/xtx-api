@@ -3,9 +3,22 @@ const asyncHandler = require('express-async-handler');
 const {validationResult} = require('express-validator');
 const { authenticated } = require('../utils/utils');
 const fetch = require('node-fetch')
-const {fetchAsset, fetchTimeSeries} = require('../utils/iex')
+const {fetchAsset, fetchTimeSeries, fetchSearch} = require('../utils/iex')
 
 const router = express.Router()
+
+router.get('/search/:search', asyncHandler( async(req, res, next) => {
+  console.log(req.params.search)
+  let searchResults = await fetchSearch(req.params.search)
+
+  if(searchResults){
+    res.json(searchResults)
+  } else {
+    const err = Error('There was an error retrieving the data.');
+    err.errors = ['Error in API provider.'];
+    next(err);
+  }
+}))
 
 router.get('/:asset/:date?', authenticated, asyncHandler( async(req,res,next) => {
   responseAPI = await fetchAsset(req.params.asset)
@@ -27,8 +40,8 @@ router.get('/:asset/:date?', authenticated, asyncHandler( async(req,res,next) =>
   }
 }));
 
-router.get('/timeseries/:asset/:range?', authenticated, asyncHandler(async(req, res, next) => {
-  responseAPI = await fetchTimeSeries(req.params.asset, req.params.range)
+router.get('/timeseries/:asset/:range?/:interval?', authenticated, asyncHandler(async(req, res, next) => {
+  responseAPI = await fetchTimeSeries(req.params.asset, req.params.range, req.params.interval)
   if (responseAPI.ok) {
     const timeSeries = await responseAPI.json()
     if (timeSeries) {
@@ -43,20 +56,6 @@ router.get('/timeseries/:asset/:range?', authenticated, asyncHandler(async(req, 
     err.status = responseAPI.status
     err.errors = responseAPI.statusText
     next(err)
-  }
-}))
-
-router.get('/search/:search', authenticated, asyncHandler( async(req, res, next) => {
-  const url = `https://api.polygon.io/v2/reference/tickers?sort=ticker&search=${req.params.search}&perpage=10&page=1&apiKey=0sXWlN4BphrsPZEVMC1cWUKxM5lHx53z`
-  const searchRes = await fetch(url);
-  const data = await searchRes.json();
-
-  if(data.status === 'OK'){
-    res.json(data)
-  } else {
-    const err = Error('There was an error retrieving the data.');
-    err.errors = ['Error in API provider.'];
-    next(err);
   }
 }))
 
