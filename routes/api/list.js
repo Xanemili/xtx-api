@@ -20,31 +20,27 @@ const listValidators = [
   check('name').not().isEmpty().withMessage('Please provide a name for the List.')
 ]
 
-router.get('/', asyncHandler(async (req, res, next) => {
+router.get('/', authenticated, asyncHandler(async (req, res, next) => {
 
-  const watchlist = await List.findAll({
-    where: {
-      userId: 1
-    },
-    include: {
-      model: Ticker,
-      required: true,
-      attributes: ['ticker'],
-      through: {
-        attributes: [] //specifies no loading of junction table.
-      }
-    },
-    attributes: ['name', 'description', 'id'],
-  })
+  try {
+    const lists = await List.findAll({
+      where: {
+        userId: req.user.id
+      },
+      include: {
+        model: Ticker,
+        required: true,
+        attributes: ['ticker'],
+        through: {
+          attributes: [] //specifies no loading of junction table.
+        }
+      },
+      attributes: ['name', 'description', 'id'],
+    })
 
-  if (watchlist) {
-    res.json(watchlist)
-  } else {
-    const err = Error('No lists found.');
-    err.errors = [`There were no watchlists associated with this account.`];
-    err.title = `No Watchlists`;
-    err.status = 404;
-    next(err);
+    res.json(lists)
+  } catch(e) {
+    next(e)
   }
 }));
 

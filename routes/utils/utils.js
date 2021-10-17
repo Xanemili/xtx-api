@@ -6,7 +6,8 @@ const {User} = require('../../db/models');
 const { jwtConfig: { secret, expiresIn } } = require('../../config');
 
 function generateToken(user) {
-  const data = user.toSafeObject();
+  console.log(user.id)
+  const data = user.id;
   const jwtid = uuid();
 
   return {
@@ -23,16 +24,15 @@ function restoreUser(req, res, next){
   }
 
   return jwt.verify(token, secret, null, async (err, payload) => {
+
     if(err) {
       err.status = 403;
       return next(err);
     }
 
-    const tokenId = payload.jti;
-
     try {
-      req.user = await User.findByPk(payload.data.id);
-
+      const user = await User.findByPk(payload.data);
+      req.user ={ id: user.id }
     } catch(e){
       return next(e);
     }
