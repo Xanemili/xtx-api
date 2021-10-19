@@ -1,7 +1,7 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const {
-  check,
+  body,
   validationResult
 } = require('express-validator')
 
@@ -17,10 +17,12 @@ const { checkTicker } = require('./validators/checkTicker');
 const router = express.Router();
 
 const listValidators = [
-  check('name').not().isEmpty().withMessage('Please provide a name for the List.')
+  body('name').not().isEmpty().withMessage('Please provide a name for the List.')
 ]
 
 router.get('/', authenticated, asyncHandler(async (req, res, next) => {
+
+  console.log(req.user.id)
 
   try {
     const lists = await List.findAll({
@@ -29,7 +31,7 @@ router.get('/', authenticated, asyncHandler(async (req, res, next) => {
       },
       include: {
         model: Ticker,
-        required: true,
+        required: false,
         attributes: ['ticker'],
         through: {
           attributes: [] //specifies no loading of junction table.
@@ -46,6 +48,7 @@ router.get('/', authenticated, asyncHandler(async (req, res, next) => {
 
 router.post('/new', authenticated, listValidators, asyncHandler(async (req, res, next) => {
 
+  console.log(req.body)
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -58,30 +61,31 @@ router.post('/new', authenticated, listValidators, asyncHandler(async (req, res,
   const newList = await List.create({
     name: req.body.name,
     description: req.body.description,
-    userId: 1,
+    userId: req.user.id,
   })
 
   if (!newList) {
     throw new Error()
   }
 
-  res.json({
-    message: `${newList.name} was created!`
-  });
+  res.json(newList);
 }))
 
 router.delete('/:listId', authenticated, asyncHandler(async (req, res, next) => {
-  const listToDelete = await List.findOne({
-    where: {
-      id: req.params.listId
-    }
-  });
 
-  if (listToDelete) {
-    await listToDelete.destroy();
-    res.json({
-      message: 'List was removed from your profile.'
-    })
+  try {
+    const listToDelete = await List.findOne({
+      where: {
+        id: req.params.listId
+      }
+    });
+
+    if (listToDelete) {
+      await listToDelete.destroy();
+      res.json()
+    }
+  } catch(e) {
+    next(e)
   }
 }))
 
@@ -113,18 +117,18 @@ router.put('/:listId/security/:id', asyncHandler(async (req, res, next) => {
     },
   })
 
-  await list.addTicker(ticker)
+  try {
+    await list.addTicker(ticker)
+    res.json(ticker)
+  } catch(e) {
+    next(e)
+  }
 
-  res.sendStatus(200)
 }))
 
 router.delete('/:listId/security/:id', asyncHandler(async (req, res, next) => {
 
-  const ticker = await Ticker.findOne({
-    where: {
-      ticker: req.body.ticker
-    }
-  });
+  const ticker = await Ticker.findByPk(id);
 
   if(!ticker) {
     const err = Error('Security was not found.')

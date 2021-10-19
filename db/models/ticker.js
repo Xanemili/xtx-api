@@ -5,8 +5,6 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     market: DataTypes.STRING,
     url: DataTypes.STRING,
-    closePrice: DataTypes.FLOAT,
-    openPrice: DataTypes.FLOAT,
   }, {});
   Ticker.associate = function(models) {
     Ticker.hasMany(models.Ledger, {foreignKey: 'tickerId'})
