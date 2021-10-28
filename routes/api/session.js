@@ -31,10 +31,10 @@ router.put('/', [email, password], asyncHandler(async (req, res, next) => {
     err.errors = ['Invalid Credentials'];
     return next(err);
   }
-  const { jwtid, token } = generateToken(user);
+  const { jwtid, token, expiration } = generateToken(user);
   user.tokenId = jwtid;
   await user.save();
-  res.json({ token, user: user.toSafeObject() })
+  res.json({ token, expiration })
 }))
 
 router.delete('/', [authenticated], asyncHandler(async (req,res ) => {

@@ -3,7 +3,7 @@ const asyncHandler = require('express-async-handler');
 const {validationResult} = require('express-validator');
 const { authenticated } = require('../utils/utils');
 const fetch = require('node-fetch')
-const {fetchAsset, fetchTimeSeries, fetchSearch} = require('../utils/iex')
+const {fetchAsset, fetchTimeSeries, fetchSearch, fetchMarketLists} = require('../utils/iex')
 
 const router = express.Router()
 
@@ -17,6 +17,24 @@ router.get('/search/:search', asyncHandler( async(req, res, next) => {
     const err = Error('There was an error retrieving the data.');
     err.errors = ['Error in API provider.'];
     next(err);
+  }
+}))
+
+router.get('/movers', asyncHandler(async (req, res, next) => {
+  const gainersResponse = await fetchMarketLists('gainers')
+  const losersResponse = await fetchMarketLists('losers')
+
+  if (gainersResponse.ok && losersResponse.ok) {
+    console.log(gainersResponse, losersResponse)
+    const gainers = await gainersResponse.json()
+    const losers = await losersResponse.json()
+    res.json({
+      gainers,
+      losers
+    })
+  } else {
+    const err = Error('Issue with API')
+    next(err)
   }
 }))
 
@@ -65,6 +83,8 @@ router.get('/news/news', asyncHandler( async(req,res,next) => {
   const news = await waiting.json()
   res.json(news)
 }))
+
+
 
 
 module.exports = router;

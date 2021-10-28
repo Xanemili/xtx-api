@@ -10,9 +10,12 @@ function generateToken(user) {
   const data = user.id;
   const jwtid = uuid();
 
+  const expiration = Math.floor(Date.now() / 1000) + (expiresIn)
+
   return {
     jwtid,
-    token: jwt.sign({data}, secret, {expiresIn: Number.parseInt(expiresIn), jwtid})
+    token: jwt.sign({data}, secret, {expiresIn: Number.parseInt(expiresIn), jwtid}),
+    expiration
   };
 }
 

@@ -21,7 +21,7 @@ router.post('/', userAuth, userCreateAuth, asyncHandler(async (req, res, next) =
 
   try {
     const user = await UserFuncs.create(req.body);
-    const { jwtid, token } = generateToken(user);
+    const { jwtid, token, expiration } = generateToken(user);
     user.tokenId = jwtid;
     await user.save();
 
@@ -49,7 +49,7 @@ router.post('/', userAuth, userCreateAuth, asyncHandler(async (req, res, next) =
       description: 'Stocks to Watch.',
     })
 
-    res.json({ token, user: user.toSafeObject() });
+    res.json({ token, user: user.toSafeObject(), expiration });
   } catch (e) {
     next(e);
   }
@@ -70,7 +70,7 @@ router.get('/portfolio', authenticated, async (req, res, next) => {
       },
       group: ['Ticker.id']
     });
-    
+
     if (assets) {
       res.json(assets)
     };
@@ -179,7 +179,7 @@ router.get('/cash', authenticated, asyncHandler(async (req, res, next) => {
 //       console.log(total, cost)
 //       console.log(port)
 //     }
-    
+
 //     res.json(users)
 //   } catch (e) {
 //     console.log(e)
