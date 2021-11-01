@@ -22,8 +22,6 @@ const listValidators = [
 
 router.get('/', authenticated, asyncHandler(async (req, res, next) => {
 
-  console.log(req.user.id)
-
   try {
     const lists = await List.findAll({
       where: {
@@ -48,7 +46,6 @@ router.get('/', authenticated, asyncHandler(async (req, res, next) => {
 
 router.post('/new', authenticated, listValidators, asyncHandler(async (req, res, next) => {
 
-  console.log(req.body)
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {

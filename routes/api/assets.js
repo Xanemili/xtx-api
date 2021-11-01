@@ -25,7 +25,6 @@ router.get('/movers', asyncHandler(async (req, res, next) => {
   const losersResponse = await fetchMarketLists('losers')
 
   if (gainersResponse.ok && losersResponse.ok) {
-    console.log(gainersResponse, losersResponse)
     const gainers = await gainersResponse.json()
     const losers = await losersResponse.json()
     res.json({
@@ -40,7 +39,6 @@ router.get('/movers', asyncHandler(async (req, res, next) => {
 
 router.get('/:asset/:date?', authenticated, asyncHandler( async(req,res,next) => {
   responseAPI = await fetchAsset(req.params.asset)
-  console.log(responseAPI)
   if (responseAPI.ok) {
     const assetInfo = await responseAPI.json()
 
@@ -76,15 +74,5 @@ router.get('/timeseries/:asset/:range?/:interval?', authenticated, asyncHandler(
     next(err)
   }
 }))
-
-router.get('/news/news', asyncHandler( async(req,res,next) => {
-
-  const waiting = await fetch('https://newsapi.org/v2/top-headlines?apiKey=53eeb325d1d34dd19167158c3aa45798&language=en&category=business&country=us')
-  const news = await waiting.json()
-  res.json(news)
-}))
-
-
-
 
 module.exports = router;
