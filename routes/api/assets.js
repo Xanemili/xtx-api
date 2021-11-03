@@ -50,8 +50,8 @@ router.get('/:asset/:date?', authenticated, asyncHandler( async(req,res,next) =>
       next (err)
     }
   } else {
-    const err = Error('API is not responding.')
-    err.errors = ['No API response.']
+    const err = Error('API error.')
+    err.errors = [responseAPI.statusText]
     next(err)
   }
 }));

@@ -3,9 +3,9 @@ const fetch = require('node-fetch')
 const iexBaseUrl = 'https://cloud.iexapis.com/stable'
 const iexBaseTest = 'https://sandbox.iexapis.com/stable'
 
-const fetchAsset = async (asset, range='1m', chartInterval=5, types=['quote', 'news', 'chart','company','peers']) => {
+const fetchAsset = async (asset, types=['quote','company',]) => {
   const requestTypes = types.join(',')
-  const responseAPI = await fetch(`${iexBaseUrl}/stock/${asset}/batch?types=${requestTypes}&range=${range}&last=10&token=Tsk_d83ce3387c9b44d99c7060e036faad15&chartInterval=${chartInterval}`)
+  const responseAPI = await fetch(`${iexBaseTest}/stock/${asset}/batch?types=${requestTypes}&token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
   return responseAPI
 }
 
