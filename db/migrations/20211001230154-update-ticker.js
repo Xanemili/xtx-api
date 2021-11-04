@@ -22,7 +22,7 @@ module.exports = {
     }),
       queryInterface.changeColumn('Tickers', 'market', {
         allowNull: false,
-        type: Sequelize.String(15)
+        type: Sequelize.STRING(15)
     })]
 
     return Promise.all(downgradeTicker)

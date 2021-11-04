@@ -1,21 +1,31 @@
 'use strict'
 const fetch = require('node-fetch')
-const iexBaseUrl = 'https://cloud.iexapis.com/stable'
-const iexBaseTest = 'https://sandbox.iexapis.com/stable'
+const { api } = require('../../config')
+
+const parseIex = async (response) => {
+  if (response.ok) {
+    const data = await response.json()
+    return { ok: true, data } 
+  } else {
+    const err = new Error(`IEX: ${response.status} - ${response.statusText}`)
+    err.status = 503
+    throw err
+  }
+} 
 
 const fetchAsset = async (asset, types=['quote','company',]) => {
   const requestTypes = types.join(',')
-  const responseAPI = await fetch(`${iexBaseTest}/stock/${asset}/batch?types=${requestTypes}&token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
+  const responseAPI = await fetch(`${api.iex_base_url}/stock/${asset}/batch?types=${requestTypes}&token=${api.iex_secret}`)
   return responseAPI
 }
 
 const fetchTimeSeries = async (asset, range='1m', interval=1) => {
-  const responseAPI = await fetch(`${iexBaseUrl}/stock/${asset}/chart/${range}?token=Tsk_d83ce3387c9b44d99c7060e036faad15&chartInterval=${interval}`)
+  const responseAPI = await fetch(`${api.iex_base_url}/stock/${asset}/chart/${range}?token=Tsk_d83ce3387c9b44d99c7060e036faad15&chartInterval=${interval}`)
   return responseAPI
 }
 
 const fetchSearch = async(searchTerm) => {
-  const responseAPI = await fetch(`${iexBaseUrl}/search/${searchTerm}?token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
+  const responseAPI = await fetch(`${api.iex_base_url}/search/${searchTerm}?token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
   console.log(responseAPI)
   if (responseAPI.ok){
     let res = await responseAPI.json()
@@ -36,9 +46,10 @@ const updateAssetPrices = async(tickers) => {
   return price_list
 }
 
-const fetchMarketLists = async( type ) => {
-  const responseAPI = await fetch(`${iexBaseTest}/stock/market/list/${type}?token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
-  return responseAPI
+const fetchMarketLists = async(type) => {
+  const responseAPI = await fetch(`${api.iex_base_url}/stock/marke/list/${type}?token=${api.iex_secret}`)
+  return parseIex(responseAPI)
+  
 }
 
 module.exports ={

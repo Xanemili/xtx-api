@@ -31,14 +31,14 @@ cron.schedule('* 30 6 * * 1-5', async () => {
 })
 
 app.use((err, req, res, next) => {
+  
   res.status(err.status || 500);
+
   if (err.status === 401) {
-    res.set('WWW-Authenticate', 'Bearer');
+    res.set('WWW-Authenticate', 'Bearer')
   }
-  res.json({
-    message: err.message,
-    error: JSON.parse(JSON.stringify(err)),
-  })
+
+  res.json({message: err.message})
 })
 
 module.exports = app;

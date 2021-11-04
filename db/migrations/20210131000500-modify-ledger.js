@@ -8,11 +8,11 @@ module.exports = {
       })
     ]
   },
-  down: (queryInterface, Sequelize) => {
+  down: async (queryInterface, Sequelize) => {
     return [
-      queryInterface.changeColumn('Ledger', 'amount',
+      await queryInterface.changeColumn('Ledger', 'amount',
       {
-        type: Sequelize.Integer
+        type: Sequelize.INTEGER()
       })
     ]
   }

@@ -21,18 +21,15 @@ router.get('/search/:search', asyncHandler( async(req, res, next) => {
 }))
 
 router.get('/movers', asyncHandler(async (req, res, next) => {
-  const gainersResponse = await fetchMarketLists('gainers')
-  const losersResponse = await fetchMarketLists('losers')
-
-  if (gainersResponse.ok && losersResponse.ok) {
-    const gainers = await gainersResponse.json()
-    const losers = await losersResponse.json()
+  try {
+    const gainers = await fetchMarketLists('gainers')
+    const losers = await fetchMarketLists('losers')
     res.json({
-      gainers,
-      losers
+      gainers: gainers.data,
+      losers: losers.data
     })
-  } else {
-    const err = Error('Issue with API')
+
+  } catch (err) {
     next(err)
   }
 }))
