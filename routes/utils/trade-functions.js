@@ -1,76 +1,80 @@
 const { sequelize } = require('../../db/models');
-const { Ticker, Ledger } = require('../../db/models')
+const { _Symbol, Ledger, Position } = require('../../db/models');
 
 async function buy(details, id) {
 
-  let ticker = await Ticker.findOne({
-    where: { ticker: details.ticker }
+  let symbol = await _Symbol.findOne({
+    where: { symbol: details.symbol }
   });
 
 
-  if (!ticker) {
-    ticker = await Ticker.create({
-      ticker: details.ticker,
+  if (!symbol) {
+    symbol = await _Symbol.create({
+      symbol: details.symbol,
     })
   }
 
-  const result = await sequelize.transaction(async (buyTransaction) => {
-
-    try {
+  try {
+    await sequelize.transaction(async (buyTransaction) => {
 
       let { price, amount } = details
 
-      const tickerId = ticker.dataValues.id
+      const symbolId = symbol.id
       const tradeTotal = amount * price;
 
-      const cash = await Ticker.findAll({
-        where: {
-          ticker: 'CASH'
-        },
-        attributes: ['id','ticker',[sequelize.fn('sum', sequelize.col('Ledgers.tradeTotal')), 'total']],
-        include: [{
-          model: Ledger,
-          where: {
-           userId: id,
-          },
-        }],
-        group: ['Ticker.id', 'Ledgers.id']
+      const cash = await Position.findOne({
+        where: { userId: user.id, },
+        include: _Symbol
       })
 
-      if (cash.total - tradeTotal < 0) {
+      if (cash.amount - tradeTotal < 0) {
         throw new Error('Not enough cash.');
       }
 
       const trade = await Ledger.create({
         userId: id,
-        tickerId,
+        symbolId,
         price,
-        amount,
+        quantity,
         tradeTotal,
+        balance,
         isOpen: true,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       }, { transaction: buyTransaction });
 
-      const cashtrade = await Ledger.create({
-        userId: id,
-        tickerId: cash[0].id,
-        price,
-        amount: tradeTotal * -1,
-        tradeTotal: tradeTotal * -1,
-        isOpen: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }, { transaction: buyTransaction });
+      let position = await Position.findOne({
+        include: [{ model: Symbol, where: { symbol: symbol }, required: true }],
+      })
 
-      return [trade, cashtrade]
+      if (position) {
+        const totalCost = position.wavg_cost * position.quantity
+        position.quantity = position.quantity + quantity
+        position.wavg_cost = (totalCost + tradeTotal) / (position.quantity)
+        await position.save({ fields: ['wavg_cost', 'quantity']}, {transaction: buyTransaction})
+      } else {
+
+        const wavg_cost = tradeTotal / quantity
+        position = await Position.create({
+          userId: id,
+          symbolId,
+          quantity,
+          wavg_cost
+        })
+      }
+
+      // complete the cash transaction
+      cash.quantity = cash.quantity - tradeTotal
+      await cash.save({ fields: ['quantity']}, { transaction: buyTransaction })
+
+      return trade
+    });
     } catch (e) {
       throw e
     }
-  });
-
-  return result;
 }
+
+
 
 async function sell(details, id, ticker) {
 
@@ -87,9 +91,9 @@ async function sell(details, id, ticker) {
       isOpen: true
     }
   })
-  
+
   const result = await sequelize.transaction(async (sellTransaction) => {
-    
+
     let currentAmount = amount
     let unfilled = 0;
     let i = 0;

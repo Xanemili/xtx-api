@@ -7,12 +7,12 @@ const {
 
 const {
   List,
-  Ticker,
+  _Symbol,
 } = require('../../db/models');
 const {
   authenticated
 } = require('../utils/utils');
-const { checkTicker } = require('./validators/checkTicker');
+const { checkSymbol } = require('./validators/checkSymbol');
 
 const router = express.Router();
 
@@ -28,9 +28,9 @@ router.get('/', authenticated, asyncHandler(async (req, res, next) => {
         userId: req.user.id
       },
       include: {
-        model: Ticker,
+        model: _Symbol,
         required: false,
-        attributes: ['ticker'],
+        attributes: ['symbol'],
         through: {
           attributes: [] //specifies no loading of junction table.
         }
@@ -88,18 +88,18 @@ router.delete('/:listId', authenticated, asyncHandler(async (req, res, next) => 
 
 router.put('/:listId/security/:id', asyncHandler(async (req, res, next) => {
 
-  let ticker = await Ticker.findOne({
+  let symbol = await _Symbol.findOne({
     where: {
-      ticker: req.body.ticker
+      symbol: req.body.symbol
     }
   });
 
-  if(!ticker) {
+  if(!symbol) {
     try {
-      iex_ticker = await checkTicker(req.body.ticker)
+      iex_symbol = await checkSymbol(req.body.symbol)
 
-      ticker = await Ticker.create({
-        ticker: iex_ticker.iex_ticker,
+      symbol = await _Symbol.create({
+        symbol: iex_symbol.iex_symbol,
       })
 
     } catch (e) {
@@ -115,8 +115,8 @@ router.put('/:listId/security/:id', asyncHandler(async (req, res, next) => {
   })
 
   try {
-    await list.addTicker(ticker)
-    res.json(ticker)
+    await list.addSymbol(symbol)
+    res.json(symbol)
   } catch(e) {
     next(e)
   }
@@ -125,9 +125,9 @@ router.put('/:listId/security/:id', asyncHandler(async (req, res, next) => {
 
 router.delete('/:listId/security/:id', asyncHandler(async (req, res, next) => {
 
-  const ticker = await Ticker.findByPk(id);
+  const symbol = await _Symbol.findByPk(id);
 
-  if(!ticker) {
+  if(!symbol) {
     const err = Error('Security was not found.')
     err.errors = ['Security was not found.']
     err.title = 'Security not found.'
@@ -142,7 +142,7 @@ router.delete('/:listId/security/:id', asyncHandler(async (req, res, next) => {
   })
 
   try {
-    await list.removeTicker(ticker)
+    await list.removeSymbol(symbol)
   } catch (e) {
     const err = Error('Security was not a member of the list.');
     err.errors = ['Security was not a member of the list.'];
@@ -151,7 +151,7 @@ router.delete('/:listId/security/:id', asyncHandler(async (req, res, next) => {
     next(err)
   }
 
-  res.json(`${ticker.ticker} was removed from your list`)
+  res.json(`${symbol.symbol} was removed from your list`)
 }));
 
 module.exports = router;

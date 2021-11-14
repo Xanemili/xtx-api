@@ -3,7 +3,7 @@ const asyncHandler = require('express-async-handler');
 const { validationResult } = require('express-validator')
 const { Op, fn, col } = require('sequelize')
 
-const { List, Ticker, User, sequelize } = require('../../db/models')
+const { List, _Symbol, Position, sequelize, User } = require('../../db/models')
 const UserFuncs = require('../utils/user-functions')
 const { userAuth, userCreateAuth } = require('./validators/user-auth-middleware')
 
@@ -12,44 +12,44 @@ const { Ledger } = require('../../db/models/');
 
 const router = express.Router();
 
-router.post('/', userAuth, userCreateAuth, asyncHandler(async (req, res, next) => {
+router.post('/new', userAuth, userCreateAuth, asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     return next({ status: 422, errors: errors.array() });
   }
 
+  console.log('here')
   try {
+
+    await sequelize.transaction(async (t) => {
+
     const user = await UserFuncs.create(req.body);
     const { jwtid, token, expiration } = generateToken(user);
     user.tokenId = jwtid;
     await user.save();
 
-    await Ledger.create({
-      userId: user.id,
-      tickerId: 1,
-      price: 1,
-      amount: 1000,
-      tradeTotal: 1000,
-      isOpen: true,
-    })
-
-    await Ledger.create({
-      userId: user.id,
-      tickerId: 2,
-      price: 1000,
-      amount: 1000,
-      tradeTotal: 1000,
-      isOpen: false
-    })
-
     await List.create({
       userId: user.id,
       name: 'Watchlist',
       description: 'Stocks to Watch.',
+    }, { transaction: t })
+
+    const cashSymbol = await _Symbol.findOne({
+      where: {
+        symbol: 'CASH'
+      }
     })
 
+    await Position.create({
+      userId: user.id,
+      wavg_cost: 1,
+      quantity: 0.00,
+      symbolId: cashSymbol.id,
+    }, { transaction: t })
+
     res.json({ token, user: user.toSafeObject(), expiration });
+    })
   } catch (e) {
     next(e);
   }
@@ -65,10 +65,10 @@ router.get('/portfolio', authenticated, async (req, res, next) => {
       },
       attributes: [[fn('sum', col('tradeTotal')), 'total'], [fn('sum', col('amount')), 'amount']],
       include: {
-        model: Ticker,
-        attributes: ['ticker']
+        model: _Symbol,
+        attributes: ['symbol']
       },
-      group: ['Ticker.id']
+      group: ['Symbol.id']
     });
 
     if (assets) {
@@ -85,9 +85,9 @@ router.get('/portfolio/history', authenticated, async (req, res, next) => {
   try {
     const portfolio = await Ledger.findAll({
       include: [{
-        model: Ticker,
+        model: _Symbol,
         where: {
-          ticker: 'PORT_VAL'
+          symbol: 'PORT_VAL'
         },
         attributes: []
       }],
@@ -116,9 +116,11 @@ router.get('/', authenticated, (req, res) => {
 })
 
 router.get('/cash', authenticated, asyncHandler(async (req, res, next) => {
-  const cash = await Ledger.findAll({
-    where: { userId: req.user.id, isOpen: true, tickerId: 1 },
-    attributes: [[fn('sum', col('tradeTotal')), 'total'], [fn('sum', col('amount')), 'amount']],
+
+  // I BROKE THIS!!!!!s
+
+  const cash = await Position.findOne({
+    where: { userId: req.user.id, isOpen: true, symbolId },
   });
 
   if (cash) {
@@ -130,62 +132,5 @@ router.get('/cash', authenticated, asyncHandler(async (req, res, next) => {
   }
 
 }))
-
-// test for portfolio valuation
-// router.get('/testing_portfolio', asyncHandler(async (req, res, next) => {
-//   try {
-
-//     const users = await User.findAll({
-//       include: [
-//         {
-//           model: Ledger,
-//           where: {
-//             isOpen: true
-//           },
-//           include: [{
-//             model: Ticker,
-//             attributes: ['id', 'ticker', 'closePrice']
-//         }],
-//       }],
-//       attributes: ['username', 'id'],
-//       //tried to simplfy it with sql. failed. going to easy but inefficient mode for now.
-//       // attributes: {
-//       //   include: [
-//       //     sequelize.literal(`(
-//       //       SELECT SUM("Ledger".amount) AS total
-//       //       FROM "Ledger"
-//       //       WHERE "Ledger"."userId" = id
-//       //       GROUP BY "Ledger"."tickerId"
-//       //     )`)
-//       //   ]
-//       // },
-//     })
-//     console.log(users)
-//     for(let i = 0; i<users.length; i++){
-//       let total = 0
-//       let cost = 0
-//       for( let j = 0; j< users[i].Ledgers.length; j++){
-//         total = total + (users[i].Ledgers[j].amount * users[i].Ledgers[j].Ticker.closePrice)
-//         cost = cost + (users[i].Ledgers[j].tradeTotal)
-//       }
-//       let port = await Ledger.create({
-//         userId: users[i].id,
-//         tickerId: 2,
-//         tradeTotal: total,
-//         isOpen: false,
-//         amount: total,
-//         price: cost
-//       })
-//       console.log(total, cost)
-//       console.log(port)
-//     }
-
-//     res.json(users)
-//   } catch (e) {
-//     console.log(e)
-//     next(e)
-//   }
-
-// }))
 
 module.exports = router;

@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     userId: DataTypes.INTEGER
   }, {});
   List.associate = function(models) {
-    List.belongsToMany(models.Ticker, {through: 'Watchlist', foreignKey: 'listId'});
+    List.belongsToMany(models._Symbol, {through: 'UserList', foreignKey: 'listId'});
     List.belongsTo(models.User, {foreignKey: 'userId'});
   };
   return List;

@@ -6,7 +6,7 @@ const Trades = require('../utils/trade-functions');
 
 const { authenticated } = require('../utils/utils');
 const { tradeValidation } = require('./validators/trade-middleware')
-const {checkTicker} = require('./validators/checkTicker')
+const {checkSymbol} = require('./validators/checkSymbol')
 
 
 const router = express.Router();
@@ -14,10 +14,10 @@ const router = express.Router();
 router.post('/:security/BUY', authenticated, tradeValidation, asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
 
-  const ticker = await checkTicker(req.params.security);
+  const symbol = await checkSymbol(req.params.security);
 
-  if(!ticker){
-    return next({status: 422, errors: 'Ticker is not supported.'})
+  if(!symbol){
+    return next({status: 422, errors: 'Symbol is not supported.'})
   }
 
   if(!errors.isEmpty()) {
@@ -29,11 +29,10 @@ router.post('/:security/BUY', authenticated, tradeValidation, asyncHandler(async
     const trade = await Trades.buy(details, req.user.id)
 
     console.log(trade)
-    res.json({message: 'trade complete'})
+    res.json(trade)
   } catch (error) {
     console.log(error)
     next(error);
-    //{status: 422, errors: 'Trade Failed'}
   }
 }))
 

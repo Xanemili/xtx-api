@@ -15,5 +15,5 @@ module.exports = {
     iex_secret: process.env.NODE_ENV === 'development' ? process.env.IEX_SANDBOX_KEY : process.env.IEX_CLOUD_KEY,
     iex_base_url: process.env.NODE_ENV === 'development' ? 'https://sandbox.iexapis.com/stable' : 'https://cloud.iexapis.com/stable',
     news_secret: process.env.NEWS_API
-  } 
+  }
 };

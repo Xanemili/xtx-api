@@ -5,13 +5,13 @@ const { api } = require('../../config')
 const parseIex = async (response) => {
   if (response.ok) {
     const data = await response.json()
-    return { ok: true, data } 
+    return { ok: true, data }
   } else {
     const err = new Error(`IEX: ${response.status} - ${response.statusText}`)
     err.status = 503
     throw err
   }
-} 
+}
 
 const fetchAsset = async (asset, types=['quote','company',]) => {
   const requestTypes = types.join(',')
@@ -33,23 +33,24 @@ const fetchSearch = async(searchTerm) => {
   }
 }
 
-const updateAssetPrices = async(tickers) => {
-  let ticker_string = tickers.reduce( (acc, ele, index) =>
+const updateAssetPrices = async(symbols) => {
+  let symbol_string = symbols.reduce( (acc, ele, index) =>
   {
     if(index === 0){
-      return `${ele.ticker}`
+      return `${ele.symbol}`
     }
-    return acc + `,${ele.ticker}`
+    return acc + `,${ele.symbol}`
   },'')
-  const responseAPI = await fetch(`${iexBaseUrl}/stock/market/batch?symbols=${ticker_string}&types=price&token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
+  const responseAPI = await fetch(`${iexBaseUrl}/stock/market/batch?symbols=${symbol_string}&types=price&token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
   let price_list = await responseAPI.json()
   return price_list
 }
 
 const fetchMarketLists = async(type) => {
-  const responseAPI = await fetch(`${api.iex_base_url}/stock/marke/list/${type}?token=${api.iex_secret}`)
+  console.log(api.iex_secret)
+  const responseAPI = await fetch(`${api.iex_base_url}/stock/market/list/${type}?token=${api.iex_secret}`)
   return parseIex(responseAPI)
-  
+
 }
 
 module.exports ={

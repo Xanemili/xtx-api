@@ -2,7 +2,7 @@ const express = require('express');
 const asyncHandler = require('express-async-handler');
 const {check, validationResult } = require('express-validator')
 
-const {List, Ticker, Watchlist} = require('../../db/models');
+const {List, _Symbol, Watchlist} = require('../../db/models');
 const { authenticated} = require('../utils/utils');
 
 const router = express.Router();
@@ -16,8 +16,8 @@ router.get('/', authenticated, asyncHandler( async (req,res,next)=> {
   const watchlist = await List.findOne({
     where: {userId: req.user.id},
     include: {
-      model: Ticker,
-      attributes: ['ticker'],
+      model: _Symbol,
+      attributes: ['symbol'],
       required: false
       },
     attributes: ['name', 'description'],
@@ -66,22 +66,22 @@ router.delete('/:listId', authenticated, asyncHandler( async (req, res, next) =>
 
 router.post('/security/:security', authenticated, asyncHandler( async (req,res,next) => {
   // crude implementation. only works with the one watchlist at the moment. Need to alter if adding multiple list features.
-  let ticker = await Ticker.findOne({where: {
-    ticker: req.params.security
+  let symbol = await _Symbol.findOne({where: {
+    symbol: req.params.security
   }});
 
-  if (!ticker) {
-    ticker = await Ticker.create({
-      ticker: req.params.security,
+  if (!symbol) {
+    symbol = await _Symbol.create({
+      symbol: req.params.security,
     })
   }
-  
+
   const list = await List.findOne({where: {
     userId: req.user.id
   }})
 
   const security = await Watchlist.create({
-    tickerId: ticker.id,
+    symbolId: symbol.id,
     listId: list.id
   });
 
@@ -95,14 +95,14 @@ router.post('/security/:security', authenticated, asyncHandler( async (req,res,n
 
 router.delete('/security/:security', authenticated, asyncHandler( async (req, res, next) => {
 
-  const ticker = await Ticker.findOne({where: {
-    ticker: req.params.security
+  const symbol = await _Symbol.findOne({where: {
+    symbol: req.params.security
   }});
 
 
   const securityToDelete = await Watchlist.findOne({
     where: {
-      tickerId: ticker.id,
+      symbolId: symbol.id,
     }, include: {
       model: List,
       where: {
@@ -114,7 +114,7 @@ router.delete('/security/:security', authenticated, asyncHandler( async (req, re
 
   if(securityToDelete) {
     await securityToDelete.destroy();
-    res.json({message: `${ticker.ticker} was removed from your list`})
+    res.json({message: `${symbol.symbol} was removed from your list`})
   } else {
     const err = Error('Security was not a member of the list.');
     err.errors = ['Security was not a member of the list.'];

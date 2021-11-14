@@ -1,5 +1,5 @@
 'use strict';
-const {User, Ticker} = require('../models')
+const {User, _Symbol} = require('../models')
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -7,17 +7,17 @@ module.exports = {
     let user = await User.findOne({
       where: {username: 'Demo User'}
     })
-    
-    let ticker = await Ticker.findOne({
-      where: {ticker: 'CASH'}
+
+    let symbol = await _Symbol.findOne({
+      where: {symbol: 'CASH'}
     })
-    
+
     return queryInterface.bulkInsert('Ledger', [
       {
         userId: user.id,
-        tickerId: ticker.id,
+        symbolId: symbol.id,
         price: 1.00,
-        amount: 10000,
+        quantity: 10000,
         tradeTotal: 10000,
         isOpen: true,
       },
