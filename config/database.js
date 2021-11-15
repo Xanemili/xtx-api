@@ -18,8 +18,16 @@ module.exports = {
   test: {
   },
   production: {
+    username,
+    password,
+    database,
+    host,
     use_env_variable: 'DATABASE_URL',
     dialect: 'postgres',
+    dialectOptions: {
+      ssl: true,
+      rejectUnauthorized: false,
+    },
     seederStorage: 'sequelize',
   }
 }
