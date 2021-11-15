@@ -6,11 +6,11 @@ const logger = require('morgan');
 const helmet = require('helmet')
 const routes = require('./routes');
 const cron = require('node-cron')
-const config = require('../api/config/index')
+const {origin} = require('../api/config/')
 const { retrieveEODAssetPrices, updatePortfolioValuesDB } = require('./database_utils/utils');
 const app = express();
 
-app.use(cors({ origin: config.environment }));
+app.use(cors({ origin }));
 app.use(helmet({ hsts: false }));
 app.use(logger('dev'));
 app.use(express.json());
