@@ -10,7 +10,9 @@ const {origin} = require('../api/config/')
 const { retrieveEODAssetPrices, updatePortfolioValuesDB } = require('./database_utils/utils');
 const app = express();
 
-app.use(cors({ origin }));
+app.use(cors({
+  origin: 'https://xtx-test-exchange.netlify.app/'
+}));
 app.use(helmet({ hsts: false }));
 app.use(logger('dev'));
 app.use(express.json());
