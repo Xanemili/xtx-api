@@ -6,11 +6,11 @@ const logger = require('morgan');
 const helmet = require('helmet')
 const routes = require('./routes');
 const cron = require('node-cron')
+const config = require('../api/config/index')
 const { retrieveEODAssetPrices, updatePortfolioValuesDB } = require('./database_utils/utils');
-const { totalmem } = require('os');
 const app = express();
 
-app.use(cors({ origin: true }));
+app.use(cors({ origin: config.environment }));
 app.use(helmet({ hsts: false }));
 app.use(logger('dev'));
 app.use(express.json());
@@ -31,7 +31,7 @@ cron.schedule('* 30 6 * * 1-5', async () => {
 })
 
 app.use((err, req, res, next) => {
-  
+
   res.status(err.status || 500);
 
   if (err.status === 401) {
