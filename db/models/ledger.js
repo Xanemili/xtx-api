@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
     symbolId: DataTypes.INTEGER,
     price: DataTypes.FLOAT,
     quantity: DataTypes.INTEGER,
+    balance: DataTypes.FLOAT,
     tradeTotal: DataTypes.FLOAT,
     isOpen: DataTypes.BOOLEAN,
   }, {freezeTableName: true});

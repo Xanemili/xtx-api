@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     wavg_cost: DataTypes.FLOAT,
   }, {});
   Position.associate = function(models) {
-    Position.belongsToMany(models._Symbol, { through: 'Position_Symbols' })
+    Position.belongsTo(models._Symbol, { foreignKey: 'symbolId' })
     Position.belongsTo(models.User, { foreignKey: 'userId' })
   };
   return Position;

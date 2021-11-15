@@ -1,34 +1,47 @@
 const express = require('express');
 const asyncHandler = require('express-async-handler');
 const {validationResult} = require('express-validator');
-
 const Trades = require('../utils/trade-functions');
-
 const { authenticated } = require('../utils/utils');
 const { tradeValidation } = require('./validators/trade-middleware')
-const {checkSymbol} = require('./validators/checkSymbol')
+const { checkSymbol } = require('./validators/checkSymbol')
+const { _Symbol } = require('../../db/models')
 
 
 const router = express.Router();
 
-router.post('/:security/BUY', authenticated, tradeValidation, asyncHandler(async (req, res, next) => {
+router.post('/buy', authenticated, tradeValidation, asyncHandler(async (req, res, next) => {
   const errors = validationResult(req);
 
-  const symbol = await checkSymbol(req.params.security);
+  let symbol = await _Symbol.findOne({
+    where: { symbol: req.body.symbol }
+  });
 
-  if(!symbol){
-    return next({status: 422, errors: 'Symbol is not supported.'})
+
+  if (!symbol) {
+    const iex_symbol =  await checkSymbol(req.body.symbol);
+
+    if (!iex_symbol) {
+      return next({status: 422, errors: 'Symbol is not supported.'})
+    }
+
+    symbol = await _Symbol.create({
+      symbol: iex_symbol.symbol,
+      latestUpdate: iex_symbol.latestUpdate,
+      openPrice: iex_symbol.open,
+      closePrice: iex_symbol.close,
+      name: iex_symbol.companyName,
+    })
   }
 
+  console.log(errors)
   if(!errors.isEmpty()) {
     return next({ status: 422, errors: errors.array() })
   }
 
   try {
     const details = {...req.body}
-    const trade = await Trades.buy(details, req.user.id)
-
-    console.log(trade)
+    const trade = await Trades.buy(details, req.user.id, symbol)
     res.json(trade)
   } catch (error) {
     console.log(error)
@@ -47,7 +60,8 @@ router.post('/:security/SELL', authenticated, tradeValidation, asyncHandler(asyn
     const details = {...req.body}
     const trade = await Trades.sell(details, req.user.id, req.params.security)
     if(trade.error || !trade){
-      throw error()
+      console.log(trade.error)
+      throw new Error(trade.error.message)
     }
 
     res.json({message: 'trade complete!'})

@@ -19,7 +19,6 @@ router.post('/new', userAuth, userCreateAuth, asyncHandler(async (req, res, next
     return next({ status: 422, errors: errors.array() });
   }
 
-  console.log('here')
   try {
 
     await sequelize.transaction(async (t) => {
@@ -56,20 +55,16 @@ router.post('/new', userAuth, userCreateAuth, asyncHandler(async (req, res, next
 }));
 
 router.get('/portfolio', authenticated, async (req, res, next) => {
-  console.log(req.user)
+
   try {
-    const assets = await Ledger.findAll({
-      where: {
-        userId: req.user.id,
-        [Op.or]: [{ isOpen: true }]
-      },
-      attributes: [[fn('sum', col('tradeTotal')), 'total'], [fn('sum', col('amount')), 'amount']],
-      include: {
-        model: _Symbol,
-        attributes: ['symbol']
-      },
-      group: ['Symbol.id']
-    });
+    const assets = await Position.findAll( {
+      where: { userId: req.user.id },
+      include: { model: _Symbol, required: true, attributes: [] },
+      attributes: [
+        'id', 'updatedAt', 'quantity', 'wavg_cost', 'symbolId',
+        [sequelize.col('_Symbol.symbol'), 'symbol'],
+    ]
+    })
 
     if (assets) {
       res.json(assets)
@@ -81,13 +76,12 @@ router.get('/portfolio', authenticated, async (req, res, next) => {
 });
 
 router.get('/portfolio/history', authenticated, async (req, res, next) => {
-
   try {
     const portfolio = await Ledger.findAll({
       include: [{
         model: _Symbol,
         where: {
-          symbol: 'PORT_VAL'
+          symbol: 'PORTVAL'
         },
         attributes: []
       }],
@@ -96,11 +90,8 @@ router.get('/portfolio/history', authenticated, async (req, res, next) => {
       },
       attributes: ['id','updatedAt','price', 'tradeTotal']
     })
-
     if (portfolio) {
-      res.json(
-        portfolio
-      )
+      res.json(portfolio)
     }
   } catch (e) {
     console.error(e)
@@ -117,18 +108,25 @@ router.get('/', authenticated, (req, res) => {
 
 router.get('/cash', authenticated, asyncHandler(async (req, res, next) => {
 
-  // I BROKE THIS!!!!!s
+  try {
+    const cash = await Position.findOne({
+      where: { userId: req.user.id },
+      include: {
+        model: _Symbol,
+        where: { symbol: 'CASH' },
+        attributes: [],
+      },
+      attributes: ['quantity', 'symbolId', 'updatedAt']
+    });
 
-  const cash = await Position.findOne({
-    where: { userId: req.user.id, isOpen: true, symbolId },
-  });
-
-  if (cash) {
-    res.json(
-      cash
-    )
-  } else {
-    next('err');
+    if (cash) {
+      res.json(cash)
+    } else {
+      const err = new Error('Error retrieving cash.')
+      throw err
+    }
+  } catch(e) {
+    next(e)
   }
 
 }))

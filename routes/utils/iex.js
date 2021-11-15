@@ -47,10 +47,8 @@ const updateAssetPrices = async(symbols) => {
 }
 
 const fetchMarketLists = async(type) => {
-  console.log(api.iex_secret)
   const responseAPI = await fetch(`${api.iex_base_url}/stock/market/list/${type}?token=${api.iex_secret}`)
   return parseIex(responseAPI)
-
 }
 
 module.exports ={

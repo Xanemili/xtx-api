@@ -10,13 +10,13 @@ const price = check('price')
   .not().isEmpty()
   .withMessage('Prices must not be null')
 
-const amount = check('amount')
+const quantity = check('quantity')
   .not().isEmpty()
-  .withMessage('Trades must have a valid amount')
+  .withMessage('Trades must have a valid quantity')
   .isInt()
-  .withMessage('Amounts must be integers')
+  .withMessage('Quantity must be an integer')
 
-tradeValidation = [orderType, price, amount]
+tradeValidation = [orderType, price, quantity]
 
 module.exports = {
   tradeValidation

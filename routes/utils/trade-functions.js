@@ -1,33 +1,27 @@
 const { sequelize } = require('../../db/models');
 const { _Symbol, Ledger, Position } = require('../../db/models');
 
-async function buy(details, id) {
-
-  let symbol = await _Symbol.findOne({
-    where: { symbol: details.symbol }
-  });
-
-
-  if (!symbol) {
-    symbol = await _Symbol.create({
-      symbol: details.symbol,
-    })
-  }
+async function buy(details, id, symbol) {
 
   try {
     await sequelize.transaction(async (buyTransaction) => {
 
-      let { price, amount } = details
+      let { price, quantity } = details
 
       const symbolId = symbol.id
-      const tradeTotal = amount * price;
+      const tradeTotal = quantity * price;
 
       const cash = await Position.findOne({
-        where: { userId: user.id, },
-        include: _Symbol
+        where: { userId: id, },
+        include: {
+          model: _Symbol,
+          where: { symbol: 'CASH'}
+        }
       })
 
-      if (cash.amount - tradeTotal < 0) {
+      const balance = cash.quantity - tradeTotal
+
+      if (balance < 0) {
         throw new Error('Not enough cash.');
       }
 
@@ -37,35 +31,37 @@ async function buy(details, id) {
         price,
         quantity,
         tradeTotal,
-        balance,
+        balance: balance,
         isOpen: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       }, { transaction: buyTransaction });
 
       let position = await Position.findOne({
-        include: [{ model: Symbol, where: { symbol: symbol }, required: true }],
+        where: {
+          symbolId: symbol.id,
+          userId: id,
+        }
       })
 
       if (position) {
         const totalCost = position.wavg_cost * position.quantity
         position.quantity = position.quantity + quantity
         position.wavg_cost = (totalCost + tradeTotal) / (position.quantity)
-        await position.save({ fields: ['wavg_cost', 'quantity']}, {transaction: buyTransaction})
+        await position.save({ fields: ['wavg_cost', 'quantity'], transaction: buyTransaction })
       } else {
-
         const wavg_cost = tradeTotal / quantity
         position = await Position.create({
           userId: id,
           symbolId,
           quantity,
           wavg_cost
-        })
+        }, {transaction: buyTransaction })
       }
 
       // complete the cash transaction
-      cash.quantity = cash.quantity - tradeTotal
-      await cash.save({ fields: ['quantity']}, { transaction: buyTransaction })
+      cash.quantity = balance
+      await cash.save({ fields: ['quantity'], transaction: buyTransaction })
 
       return trade
     });

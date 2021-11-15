@@ -10,7 +10,8 @@ function generateToken(user) {
   const data = user.id;
   const jwtid = uuid();
 
-  const expiration = Math.floor(Date.now() / 1000) + (expiresIn)
+  const expiration = Math.floor(Date.now() / 1000) + (parseInt(expiresIn))
+  console.log(expiration)
 
   return {
     jwtid,

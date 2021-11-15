@@ -32,6 +32,7 @@ router.put('/', [email, password], asyncHandler(async (req, res, next) => {
     return next(err);
   }
   const { jwtid, token, expiration } = generateToken(user);
+  console.log(expiration)
   user.tokenId = jwtid;
   await user.save();
   res.json({ token, expiration })
