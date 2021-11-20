@@ -8,6 +8,7 @@ const {
 const {
   List,
   _Symbol,
+  ListSymbol
 } = require('../../db/models');
 const {
   authenticated
@@ -29,17 +30,18 @@ router.get('/', authenticated, asyncHandler(async (req, res, next) => {
       },
       include: {
         model: _Symbol,
+        as: 'symbols',
         required: false,
-        attributes: ['symbol'],
+        attributes: ['symbol', 'id'],
         through: {
           attributes: [] //specifies no loading of junction table.
         }
       },
       attributes: ['name', 'description', 'id'],
     })
-
     res.json(lists)
   } catch(e) {
+    console.log(e)
     next(e)
   }
 }));
@@ -86,24 +88,21 @@ router.delete('/:listId', authenticated, asyncHandler(async (req, res, next) => 
   }
 }))
 
-router.put('/:listId/security/:id', asyncHandler(async (req, res, next) => {
+router.put('/:listId/:symbol/', asyncHandler(async (req, res, next) => {
 
   let symbol = await _Symbol.findOne({
     where: {
-      symbol: req.body.symbol
+      symbol: req.params.symbol
     }
   });
 
   if(!symbol) {
     try {
       iex_symbol = await checkSymbol(req.body.symbol)
-
       symbol = await _Symbol.create({
         symbol: iex_symbol.iex_symbol,
       })
-
     } catch (e) {
-      console.log(e)
       next(e)
     }
   }
@@ -112,12 +111,17 @@ router.put('/:listId/security/:id', asyncHandler(async (req, res, next) => {
     where: {
       id: req.params.listId
     },
+    include: _Symbol
   })
 
   try {
-    await list.addSymbol(symbol)
+    await ListSymbol.create({
+      symbolId: symbol.id,
+      listId: list.id,
+    })
     res.json(symbol)
   } catch(e) {
+    console.log(e)
     next(e)
   }
 

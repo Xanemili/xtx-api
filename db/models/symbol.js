@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
   });
   _Symbol.associate = function(models) {
     _Symbol.hasMany(models.Ledger, {foreignKey: 'symbolId'})
-    _Symbol.belongsToMany(models.List, {through: 'UserList', foreignKey: 'symbolId'})
+    _Symbol.belongsToMany(models.List, {through: models.ListSymbol, foreignKey: 'symbolId', as: 'lists'})
     _Symbol.belongsToMany(models.Position, { through: 'Position_Symbols' })
   };
   return _Symbol;

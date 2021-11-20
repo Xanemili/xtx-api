@@ -4,7 +4,7 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.sequelize.transaction( t => {
       return Promise.all([
-        queryInterface.addColumn('Positions', 'wavg_cost', { type: Sequelize.FLOAT, allowNull: false }, {transaction: t}),
+        queryInterface.addColumn('Positions', 'wavg_cost', { type: Sequelize.FLOAT, allowNull: false, defaultValue: 0 }, {transaction: t}),
         queryInterface.renameColumn('Positions', 'amount', 'quantity',  {transaction: t})
       ])
     })

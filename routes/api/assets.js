@@ -3,7 +3,6 @@ const asyncHandler = require('express-async-handler');
 const {validationResult} = require('express-validator');
 const { authenticated } = require('../utils/utils');
 const {fetchAsset, fetchTimeSeries, fetchSearch, fetchMarketLists} = require('../utils/iex')
-const config = require('../../config')
 
 const router = express.Router()
 
@@ -21,7 +20,6 @@ router.get('/search/:search', asyncHandler( async(req, res, next) => {
 }))
 
 router.get('/movers', asyncHandler(async (req, res, next) => {
-  console.log(config)
   try {
     const gainers = await fetchMarketLists('gainers')
     const losers = await fetchMarketLists('losers')

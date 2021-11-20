@@ -6,11 +6,12 @@ const logger = require('morgan');
 const helmet = require('helmet')
 const routes = require('./routes');
 const cron = require('node-cron')
+const { config } = require('../api/config')
 const { retrieveEODAssetPrices, updatePortfolioValuesDB } = require('./database_utils/utils');
 const app = express();
 
 app.use(cors({
-  origin: 'https://xtx-test-exchange.netlify.app'
+  origin: process.env.NODE_ENV === 'development' ? '*' : 'https://xtx-test-exchange.netlify.app'
 }));
 app.use(helmet({ hsts: false }));
 app.use(logger('dev'));
