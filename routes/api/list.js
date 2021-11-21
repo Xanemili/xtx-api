@@ -39,7 +39,14 @@ router.get('/', authenticated, asyncHandler(async (req, res, next) => {
       },
       attributes: ['name', 'description', 'id'],
     })
-    res.json(lists)
+
+
+    let listObj = {}
+    for (let list of lists) {
+      listObj[list.id] = list
+    }
+
+    res.json(listObj)
   } catch(e) {
     console.log(e)
     next(e)
@@ -81,14 +88,14 @@ router.delete('/:listId', authenticated, asyncHandler(async (req, res, next) => 
 
     if (listToDelete) {
       await listToDelete.destroy();
-      res.json()
+      res.json(listToDelete)
     }
   } catch(e) {
     next(e)
   }
 }))
 
-router.put('/:listId/:symbol/', asyncHandler(async (req, res, next) => {
+router.put('/:listId/:symbol', asyncHandler(async (req, res, next) => {
 
   let symbol = await _Symbol.findOne({
     where: {
@@ -98,23 +105,26 @@ router.put('/:listId/:symbol/', asyncHandler(async (req, res, next) => {
 
   if(!symbol) {
     try {
-      iex_symbol = await checkSymbol(req.body.symbol)
+      iex_symbol = await checkSymbol(req.params.symbol)
       symbol = await _Symbol.create({
-        symbol: iex_symbol.iex_symbol,
+        symbol: iex_symbol.symbol,
       })
     } catch (e) {
       next(e)
     }
   }
 
-  const list = await List.findOne({
-    where: {
-      id: req.params.listId
-    },
-    include: _Symbol
-  })
-
   try {
+    const list = await List.findOne({
+      where: {
+        id: req.params.listId
+      },
+      include: {
+        model: _Symbol,
+        as: 'symbols'
+      }
+    })
+
     await ListSymbol.create({
       symbolId: symbol.id,
       listId: list.id,
@@ -127,9 +137,10 @@ router.put('/:listId/:symbol/', asyncHandler(async (req, res, next) => {
 
 }))
 
-router.delete('/:listId/security/:id', asyncHandler(async (req, res, next) => {
+router.delete('/:listId/:symbol', asyncHandler(async (req, res, next) => {
 
-  const symbol = await _Symbol.findByPk(id);
+  const symbol = await _Symbol.findOne({ where: { symbol: req.params.symbol }}
+    );
 
   if(!symbol) {
     const err = Error('Security was not found.')
@@ -139,23 +150,15 @@ router.delete('/:listId/security/:id', asyncHandler(async (req, res, next) => {
     next(err)
   }
 
-  const list = await List.findOne({
-    where: {
-      id: req.params.listId
-    }
-  })
+  const list = await List.findByPk(req.params.listId)
 
   try {
     await list.removeSymbol(symbol)
   } catch (e) {
-    const err = Error('Security was not a member of the list.');
-    err.errors = ['Security was not a member of the list.'];
-    err.title = 'Security not found.';
-    err.status = 422;
     next(err)
   }
 
-  res.json(`${symbol.symbol} was removed from your list`)
+  res.json({ id: list.id, symbol: symbol})
 }));
 
 module.exports = router;
