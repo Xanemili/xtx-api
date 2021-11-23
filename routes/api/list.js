@@ -48,7 +48,6 @@ router.get('/', authenticated, asyncHandler(async (req, res, next) => {
 
     res.json(listObj)
   } catch(e) {
-    console.log(e)
     next(e)
   }
 }));

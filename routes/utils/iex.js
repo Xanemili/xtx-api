@@ -16,21 +16,17 @@ const parseIex = async (response) => {
 const fetchAsset = async (asset, types=['quote','company',]) => {
   const requestTypes = types.join(',')
   const responseAPI = await fetch(`${api.iex_base_url}/stock/${asset}/batch?types=${requestTypes}&token=${api.iex_secret}`)
-  return responseAPI
+  return parseIex(responseAPI)
 }
 
 const fetchTimeSeries = async (asset, range='1m', interval=1) => {
-  const responseAPI = await fetch(`${api.iex_base_url}/stock/${asset}/chart/${range}?token=Tsk_d83ce3387c9b44d99c7060e036faad15&chartInterval=${interval}`)
-  return responseAPI
+  const responseAPI = await fetch(`${api.iex_base_url}/stock/${asset}/chart/${range}?token=${api.iex_secret}&chartInterval=${interval}`)
+  return parseIex(responseAPI)
 }
 
 const fetchSearch = async(searchTerm) => {
-  const responseAPI = await fetch(`${api.iex_base_url}/search/${searchTerm}?token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
-  console.log(responseAPI)
-  if (responseAPI.ok){
-    let res = await responseAPI.json()
-    return res
-  }
+  const responseAPI = await fetch(`${api.iex_base_url}/search/${searchTerm}?token=${api.iex_secret}`)
+  return parseIex(responseAPI)
 }
 
 const updateAssetPrices = async(symbols) => {
