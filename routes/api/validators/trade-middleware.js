@@ -3,7 +3,7 @@ const {check} = require('express-validator');
 const orderType = check('orderType')
   .not().isEmpty()
   .withMessage('A trade must have a order type')
-  .isIn(['BUY','SELL'])
+  .isIn(['buy','sell'])
   .withMessage('You must place a valid order type')
 
 const price = check('price')
