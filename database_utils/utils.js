@@ -1,82 +1,86 @@
 'use strict'
-const { Ledger, User, Ticker } = require('../db/models/')
+const { Ledger, User, _Symbol, Position } = require('../db/models/')
 const { Op } = require('sequelize')
 const {updateAssetPrices} = require('../routes/utils/iex')
 
 const updatePortfolioValuesDB = async () => {
   try {
+    const portval = await _Symbol.findOne({
+      where: {
+        symbol: 'PORTVAL'
+      }
+    })
+
     const users = await User.findAll({
       include: [
         {
-          model: Ledger,
-          where: {
-            isOpen: true
-          },
+          model: Position,
           include: [{
-            model: Ticker,
-            attributes: ['id', 'ticker', 'closePrice']
+            model: _Symbol,
+            attributes: ['id', 'symbol', 'closePrice']
           }],
         }],
       attributes: ['username', 'id'],
-      //tried to simplfy it with sql. failed. going to easy but inefficient mode for now.
-      // attributes: {
-      //   include: [
-      //     sequelize.literal(`(
-      //       SELECT SUM("Ledger".amount) AS total
-      //       FROM "Ledger"
-      //       WHERE "Ledger"."userId" = id
-      //       GROUP BY "Ledger"."tickerId"
-      //     )`)
-      //   ]
-      // },
     })
+
     console.log(users)
+
     for (let i = 0; i < users.length; i++) {
       let total = 0
       let cost = 0
-      for (let j = 0; j < users[i].Ledgers.length; j++) {
-        total = total + (users[i].Ledgers[j].amount * users[i].Ledgers[j].Ticker.closePrice)
-        cost = cost + (users[i].Ledgers[j].tradeTotal)
+
+      for (let j = 0; j < users[i].Positions.length; j++) {
+        total = total + (users[i].Positions[j].quantity * users[i].Positions[j]._Symbol.closePrice)
       }
+
       let port = await Ledger.create({
         userId: users[i].id,
-        tickerId: 2,
+        symbolId: portval.id,
         tradeTotal: total,
         isOpen: false,
         amount: total,
-        price: cost
+        price: 1 //unsure how to use this col for portvals
       })
+
       console.log(total, cost)
       console.log(port)
     }
 
     return
   } catch (e) {
-    console.error(e)
+    console.log(e)
   }
 }
 
 const retrieveEODAssetPrices = async() => {
-  const tickers = await Ticker.findAll({
+  const symbols = await _Symbol.findAll({
     where: {
-      ticker: {
-        [Op.notIn]: ['CASH', 'PORT_VAL']
-    },
-  },
-    include: {
-      model: Ledger,
-      where: {
-        isOpen: true,
+      symbol: {
+        [Op.notIn]: ['CASH', 'PORTVAL']
       },
-      attributes: []
     },
   })
 
-  let iex_prices = await updateAssetPrices(tickers)
+  let iex_prices = await updateAssetPrices(symbols)
+  console.log(iex_prices)
+  try {
 
-  for (let ticker of tickers) {
-    ticker.closePrice = iex_prices[ticker.ticker].price
-    await ticker.save()
+    for (let symbol of symbols) {
+      const { quote } = iex_prices.data[symbol.symbol]
+      if (!symbol.name) {
+        symbol.name = quote.companyName
+      }
+      symbol.set({
+        closePrice: quote.close,
+        openPrice: quote.open,
+        latestUpdate: quote.latestUpdate
+      })
+      console.log(symbol)
+      symbol.closePrice = quote.latestPrice
+      await symbol.save()
+    }
+  } catch(e) {
+    Promise.reject(e)
   }
 }
 

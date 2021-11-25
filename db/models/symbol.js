@@ -5,6 +5,9 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     market: DataTypes.STRING,
     url: DataTypes.STRING,
+    closePrice: DataTypes.FLOAT,
+    openPrice: DataTypes.FLOAT,
+    latestUpdate: DataTypes.FLOAT
   }, {
     tableName: 'Symbols'
   });

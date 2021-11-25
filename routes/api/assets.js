@@ -2,7 +2,8 @@ const express = require('express');
 const asyncHandler = require('express-async-handler');
 const {validationResult} = require('express-validator');
 const { authenticated } = require('../utils/utils');
-const {fetchAsset, fetchTimeSeries, fetchSearch, fetchMarketLists} = require('../utils/iex')
+const {fetchAsset, fetchTimeSeries, fetchSearch, fetchMarketLists} = require('../utils/iex');
+const { retrieveEODAssetPrices, updatePortfolioValuesDB } = require('../../database_utils/utils');
 
 const router = express.Router()
 
@@ -27,6 +28,16 @@ router.get('/movers', asyncHandler(async (req, res, next) => {
       losers: losers.data
     })
 
+  } catch (err) {
+    next(err)
+  }
+}))
+
+router.get('/forceIexUpdate', asyncHandler(async (req, res, next) => {
+  try {
+    await retrieveEODAssetPrices()
+    await updatePortfolioValuesDB()
+    res.sendStatus(200)
   } catch (err) {
     next(err)
   }
@@ -65,5 +76,7 @@ router.get('/timeseries/:asset/:range?/:interval?', authenticated, asyncHandler(
     next(err)
   }
 }))
+
+
 
 module.exports = router;

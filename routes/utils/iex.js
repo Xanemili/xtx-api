@@ -30,6 +30,8 @@ const fetchSearch = async(searchTerm) => {
 }
 
 const updateAssetPrices = async(symbols) => {
+
+  // IEX has limit of 100 symbols in api call. May need to address is db grows large enough.
   let symbol_string = symbols.reduce( (acc, ele, index) =>
   {
     if(index === 0){
@@ -37,9 +39,8 @@ const updateAssetPrices = async(symbols) => {
     }
     return acc + `,${ele.symbol}`
   },'')
-  const responseAPI = await fetch(`${iexBaseUrl}/stock/market/batch?symbols=${symbol_string}&types=price&token=Tsk_d83ce3387c9b44d99c7060e036faad15`)
-  let price_list = await responseAPI.json()
-  return price_list
+  const responseAPI = await fetch(`${api.iex_base_url}/stock/market/batch?symbols=${symbol_string}&types=quote&token=${api.iex_secret}`)
+  return parseIex(responseAPI)
 }
 
 const fetchMarketLists = async(type) => {
