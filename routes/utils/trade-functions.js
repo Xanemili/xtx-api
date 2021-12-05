@@ -4,7 +4,7 @@ const { _Symbol, Ledger, Position } = require('../../db/models');
 async function buy(details, id, symbol) {
 
   try {
-    await sequelize.transaction(async (buyTransaction) => {
+    const trade_status = await sequelize.transaction(async (buyTransaction) => {
 
       let { price, quantity } = details
 
@@ -59,12 +59,15 @@ async function buy(details, id, symbol) {
         }, {transaction: buyTransaction })
       }
 
+
       // complete the cash transaction
       cash.quantity = balance
       await cash.save({ fields: ['quantity'], transaction: buyTransaction })
 
-      return trade
+      return [trade, position]
     });
+
+      return trade_status
     } catch (e) {
       throw e
     }
@@ -72,13 +75,16 @@ async function buy(details, id, symbol) {
 
 
 
-async function sell(details, id, ticker) {
+async function sell(details, id) {
 
-  let { price, amount } = details
+  let { price, quantity, symbol : symbol_name } = details
 
-  const tickerObj = await Ticker.findOne({ where: { ticker }, raw: true });
+  const symbol = await _Symbol.findOne({ where: { symbol_name }});
+
+  if (!symbol) throw new Error('Symbol is not supported.')
+
   const tickerId = tickerObj.id;
-  const tradeTotal = amount * price;
+  const tradeTotal = quantity * price;
 
   const openPositions = await Ledger.findAll({
     where: {
@@ -88,56 +94,60 @@ async function sell(details, id, ticker) {
     }
   })
 
-  const result = await sequelize.transaction(async (sellTransaction) => {
-
-    let currentAmount = amount
-    let unfilled = 0;
-    let i = 0;
-
-    if (openPositions.length === 0) {
-      throw new Error('Attempted to sell too many shares.')
+  let position = await Position.findOne({
+    where: {
+      userId: id,
+      symbolId: symbol.id
     }
+  })
 
-    while (currentAmount > 0 && i < openPositions.length) {
-      console.log(openPositions[i])
-      if (currentAmount >= openPositions[i].dataValues.amount) {
-        currentAmount = currentAmount - openPositions[i].dataValues.amount;
-        openPositions[i].isOpen = false;
+  if (openPositions.length === 0) {
+    throw new Error('Attempted to sell too many shares.')
+  }
+
+  try {
+
+    const result = await sequelize.transaction(async (sellTransaction) => {
+
+      let currentQuantity = quantity
+      let unfilled = 0;
+      let i = 0;
+
+      while (currentQuantity > 0 && i < openPositions.length) {
         console.log(openPositions[i])
-        openPositions[i].save()
-        i++;
-      } else {
-        unfilled = openPositions[i].dataValues.amount - currentAmount;
-        currentAmount = 0;
+        if (currentQuantity >= openPositions[i].quantity) {
+          currentQuantity = currentQuantity - openPositions[i].quantity;
+          openPositions[i].isOpen = false;
+          console.log(openPositions[i])
+          openPositions[i].save()
+          i++;
+        } else {
+          unfilled = openPositions[i].dataValues.quantity - currentQuantity;
+          currentQuantity = 0;
+          break
+        }
       }
-    }
 
-    const trade = await Ledger.create({
-      userId: id,
-      tickerId,
-      price,
-      amount: (amount - unfilled) * -1,
-      tradeTotal,
-      isOpen: false,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }, { transaction: sellTransaction });
+      const trade = await Ledger.create({
+        userId: id,
+        tickerId,
+        price,
+        quantity: (quantity - unfilled) * -1,
+        tradeTotal,
+        isOpen: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }, { transaction: sellTransaction });
 
-    const cashtrade = await Ledger.create({
-      userId: id,
-      tickerId: 1,
-      price,
-      amount: amount,
-      isOpen: true,
-      tradeTotal: tradeTotal,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }, { transaction: sellTransaction });
+      position.quantity = position.quantity + trade.quantity
+      position.wavg_cost
 
-    return { trade, cashtrade, unfilled }
-  });
-
-  return result;
+      return [ trade, cashtrade, unfilled ]
+    });
+    return result
+  } catch (err) {
+    throw err
+  }
 }
 
 const addCash = async (id) => {

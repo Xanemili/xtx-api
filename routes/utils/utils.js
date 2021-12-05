@@ -35,8 +35,8 @@ function restoreUser(req, res, next){
     }
 
     try {
-      const user = await User.findByPk(payload.data);
-      req.user ={ id: user.id }
+      const user = await User.findByPk(payload.data, {attributes: ['id']});
+      req.user = { id: user.id }
     } catch(e){
       return next(e);
     }

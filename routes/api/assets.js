@@ -2,7 +2,7 @@ const express = require('express');
 const asyncHandler = require('express-async-handler');
 const {validationResult} = require('express-validator');
 const { authenticated } = require('../utils/utils');
-const {fetchAsset, fetchTimeSeries, fetchSearch, fetchMarketLists} = require('../utils/iex');
+const {fetchAsset, fetchTimeSeries, fetchSearch, fetchMarketLists, connectToSSE} = require('../utils/iex');
 const { retrieveEODAssetPrices, updatePortfolioValuesDB } = require('../../database_utils/utils');
 
 const router = express.Router()
@@ -40,6 +40,32 @@ router.get('/forceIexUpdate', asyncHandler(async (req, res, next) => {
     res.sendStatus(200)
   } catch (err) {
     next(err)
+  }
+}))
+
+router.get('/sseprices', asyncHandler( async(req, res, next) => {
+  console.log('hit')
+
+
+  res.setTimeout(24 * 60 * 60 * 1000)
+  res.writeHead(200, {
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'text/event-stream',
+    'Connection': 'keep-alive',
+  })
+
+  await connectToSSE()
+  res.flushHeaders()
+
+  res.write('retry: 10000\n\n')
+  let count = 0
+
+  while (true) {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    console.log('Emit', ++count)
+
+    res.write(`data: ${count}\n\n`)
   }
 }))
 

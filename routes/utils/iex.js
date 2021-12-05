@@ -1,5 +1,8 @@
 'use strict'
+const { response } = require('express')
 const fetch = require('node-fetch')
+const {promisify} =require('util')
+const { pipeline } = require('stream');
 const { api } = require('../../config')
 
 const parseIex = async (response) => {
@@ -48,10 +51,67 @@ const fetchMarketLists = async(type) => {
   return parseIex(responseAPI)
 }
 
+
+const connectToSSE = async () => {
+  const streamPipeline = promisify(pipeline);
+  let partialMessage
+  try {
+  let stream = new fetch('https://cloud-sse.iexapis.com/stable/stocksUSNoUTP?token=pk_2641d7e4844e4281ac366edda6fe3cbe&symbols=spy,ibm,twtr', {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Connection': 'keep-alive',
+      'Cache-Control': 'no-cache',
+    }
+  })
+
+
+    await streamPipeline(response.body)
+  } catch (err) {
+    console.error(err.stack)
+  }
+
+  stream.on('error', (err) => {
+    console.log("Error", err);
+    connect();
+  });
+
+  stream.on('data', (response) => {
+    var chunk = response.toString();
+    var cleanedChunk = chunk.replace(/data: /g, '');
+
+    if (partialMessage) {
+      cleanedChunk = partialMessage + cleanedChunk;
+      partialMessage = "";
+    }
+
+    var chunkArray = cleanedChunk.split('\r\n\r\n');
+
+    chunkArray.forEach(function (message) {
+      if (message) {
+        try {
+          var quote = JSON.parse(message)[0];
+          console.log(quote);
+        } catch (error) {
+          partialMessage = message;
+        }
+      }
+    });
+  });
+
+  wait();
+
+  return stream
+}
+
+function wait() {
+  setTimeout(wait, 1000);
+};
+
 module.exports ={
   fetchAsset,
   fetchTimeSeries,
   fetchSearch,
   updateAssetPrices,
   fetchMarketLists,
+  connectToSSE
 }

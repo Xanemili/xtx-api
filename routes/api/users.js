@@ -106,6 +106,23 @@ router.get('/', authenticated, (req, res) => {
   })
 })
 
+router.get('/profile', authenticated, asyncHandler(async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: { id: req.user.id },
+      attributes: ['email', 'username', 'firstName', 'lastName', 'address', 'phone']
+    },)
+
+    if(user) {
+      res.json(user)
+    } else {
+      throw Error('No User found.')
+    }
+  } catch(err) {
+    next(err)
+  }
+}))
+
 router.get('/cash', authenticated, asyncHandler(async (req, res, next) => {
 
   try {
