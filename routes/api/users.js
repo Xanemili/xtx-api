@@ -123,6 +123,41 @@ router.get('/profile', authenticated, asyncHandler(async (req, res, next) => {
   }
 }))
 
+router.put('/profile', authenticated, asyncHandler(async (req,res,next) => {
+
+  try {
+    const user = await User.findOne({
+      where: { id: req.user.id },
+      attributes: [ 'id', 'email', 'username', 'firstName', 'lastName', 'address', 'phone']
+    })
+
+    const {
+      email = user.email,
+      username = user.username,
+      firstName = user.firstName,
+      lastName = user.lastName,
+      address = user.address,
+      phone = user.phone
+    } = req.body
+
+    user.set({
+      email,
+      username,
+      firstName,
+      lastName,
+      address,
+      phone,
+    })
+
+    await user.save()
+    res.json(user)
+
+  } catch(err) {
+    next(err)
+  }
+
+}))
+
 router.get('/cash', authenticated, asyncHandler(async (req, res, next) => {
 
   try {
