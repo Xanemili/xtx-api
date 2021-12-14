@@ -12,9 +12,8 @@ module.exports = {
 
     const testPortfolio = []
     let portVal = 10000
-    const date = new Date(2021, 9, 1)
     const today = new Date()
-
+    const date = new Date(today.getFullYear(), today.getMonth()-1, today.getDate())
     while (date < today) {
 
       date.setDate(date.getDate() + 1)
@@ -29,11 +28,11 @@ module.exports = {
         balance: portVal,
         symbolId: portfolioSymbol.id,
         createdAt: date,
-        updatedAt: date,
+        updatedAt: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
       })
     }
 
-    return queryInterface.bulkInsert('Ledger', testPortfolio, {})
+    return queryInterface.bulkInsert('Ledger', testPortfolio)
   },
 
   down: async (queryInterface, Sequelize) => {

@@ -6,7 +6,7 @@ const logger = require('morgan');
 const helmet = require('helmet')
 const routes = require('./routes');
 const cron = require('node-cron')
-const { config } = require('../api/config')
+
 const { retrieveEODAssetPrices, updatePortfolioValuesDB } = require('./database_utils/utils');
 const app = express();
 

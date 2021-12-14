@@ -44,9 +44,6 @@ router.get('/forceIexUpdate', asyncHandler(async (req, res, next) => {
 }))
 
 router.get('/sseprices', asyncHandler( async(req, res, next) => {
-  console.log('hit')
-
-
   res.setTimeout(24 * 60 * 60 * 1000)
   res.writeHead(200, {
     'Cache-Control': 'no-cache',

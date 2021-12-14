@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     balance: DataTypes.FLOAT,
     tradeTotal: DataTypes.FLOAT,
     isOpen: DataTypes.BOOLEAN,
+    updatedAt: DataTypes.DATE,
   }, {freezeTableName: true});
   Ledger.associate = function(models) {
     Ledger.belongsTo(models.User, {foreignKey: 'userId'})

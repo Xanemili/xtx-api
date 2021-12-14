@@ -88,7 +88,12 @@ router.get('/portfolio/history', authenticated, async (req, res, next) => {
       where: {
         userId: req.user.id
       },
-      attributes: ['id','updatedAt','price', 'tradeTotal']
+      attributes: {
+        include: [
+          'id','updatedAt','price', 'tradeTotal'
+        ]
+      },
+      group: ['Ledger.updatedAt', 'Ledger.id']
     })
     if (portfolio) {
       res.json(portfolio)

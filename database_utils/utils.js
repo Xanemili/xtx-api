@@ -23,8 +23,6 @@ const updatePortfolioValuesDB = async () => {
       attributes: ['username', 'id'],
     })
 
-    console.log(users)
-
     for (let i = 0; i < users.length; i++) {
       let total = 0
       let cost = 0
@@ -33,7 +31,7 @@ const updatePortfolioValuesDB = async () => {
         total = total + (users[i].Positions[j].quantity * users[i].Positions[j]._Symbol.closePrice)
       }
 
-      let port = await Ledger.create({
+      await Ledger.create({
         userId: users[i].id,
         symbolId: portval.id,
         tradeTotal: total,
@@ -41,14 +39,12 @@ const updatePortfolioValuesDB = async () => {
         amount: total,
         price: 1 //unsure how to use this col for portvals
       })
-
-      console.log(total, cost)
-      console.log(port)
     }
 
     return
   } catch (e) {
     console.log(e)
+    Promise.reject(e)
   }
 }
 
