@@ -44,6 +44,10 @@ module.exports = (sequelize, DataTypes) => {
         len: [60, 60],
       }
     },
+    zipcode: {
+      allowNull: true,
+      type: DataTypes.STRING(255),
+    },
       tokenId: {
         type: DataTypes.STRING,
         allowNull: true

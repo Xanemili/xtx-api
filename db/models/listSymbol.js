@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-  const UserList = sequelize.define('ListSymbol', {
+  const ListSymbol = sequelize.define('ListSymbol', {
     symbolId: {
       type: DataTypes.INTEGER,
       references: {
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         model: 'Lists',
         key: 'id'
       }
-    }
-  }, { tableName: 'List_Symbols'});
-  return UserList;
+    },
+  }, { tableName: 'List_Symbols' });
+  return ListSymbol;
 };

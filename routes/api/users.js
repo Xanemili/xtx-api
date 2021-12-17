@@ -77,26 +77,26 @@ router.get('/portfolio', authenticated, async (req, res, next) => {
 
 router.get('/portfolio/history', authenticated, async (req, res, next) => {
   try {
-    const portfolio = await Ledger.findAll({
-      include: [{
-        model: _Symbol,
-        where: {
-          symbol: 'PORTVAL'
-        },
-        attributes: []
-      }],
-      where: {
-        userId: req.user.id
-      },
-      attributes: {
-        include: [
-          'id','updatedAt','price', 'tradeTotal'
-        ]
-      },
-      group: ['Ledger.updatedAt', 'Ledger.id']
-    })
-    if (portfolio) {
-      res.json(portfolio)
+    // NOTE: req.user.id is attached to the request body by the 'authenticated' middleware.
+    const [results, metadata ] = await sequelize.query(`
+      select t1."updatedAt", t1."tradeTotal", "Symbols"."symbol", "t1"."userId"
+      from "Ledger" t1
+      inner join
+      (
+        select date("updatedAt") as trade_date, max("updatedAt") as max_trade_time
+        FROM "Ledger"
+        group by date("updatedAt"), "Ledger"."userId"
+      ) t2
+        ON t2.trade_date = date(t1."updatedAt") and
+          t2.max_trade_time = t1."updatedAt"
+      inner join "Symbols"
+      on "t1"."symbolId" = "Symbols"."id"
+      where "t1"."userId" = ${req.user.id} and "Symbols"."symbol" = 'PORTVAL'
+      order by
+        t1."updatedAt"
+    `)
+    if (results) {
+      res.json(results)
     }
   } catch (e) {
     console.error(e)
@@ -142,8 +142,11 @@ router.put('/profile', authenticated, asyncHandler(async (req,res,next) => {
       firstName = user.firstName,
       lastName = user.lastName,
       address = user.address,
-      phone = user.phone
+      phone = user.phone,
+      zipcode = user.zipcode
     } = req.body
+
+    console.log(zipcode)
 
     user.set({
       email,
@@ -152,6 +155,7 @@ router.put('/profile', authenticated, asyncHandler(async (req,res,next) => {
       lastName,
       address,
       phone,
+      zipcode,
     })
 
     await user.save()
@@ -186,6 +190,51 @@ router.get('/cash', authenticated, asyncHandler(async (req, res, next) => {
     next(e)
   }
 
+}))
+
+router.post('/cash', authenticated, asyncHandler(async (req, res, next) => {
+  try {
+    const positions = await Position.findAll({
+      where: {userId: req.user.id},
+      include: {
+        model: _Symbol,
+        attributes: ['closePrice', 'name'],
+      }
+    })
+
+    let curr_balance = 0
+    let cash_id= 2
+    let cash_idx = -1
+    const result = await sequelize.transaction(async (t) => {
+
+      positions.forEach( async (pos, idx) => {
+        curr_balance = pos.quantity * pos._Symbol.closePrice
+
+        if(pos._Symbol.name === 'CASH') {
+          cash_id = pos.symbolId
+          cash_idx = idx
+          pos.quantity = pos.quantity + 1000
+          await pos.update({ quantity: pos.quantity + 1000 }, {transaction: t})
+        }
+      })
+
+      const curr = await Ledger.create({
+        symbolId: cash_id,
+        price: 1,
+        quantity: 1000,
+        tradeTotal: 1000,
+        isOpen: true,
+        balance: curr_balance
+      }, {transaction: t })
+
+      return positions[cash_idx]
+    })
+
+    res.json(result)
+
+  } catch (e) {
+    next(e)
+  }
 }))
 
 module.exports = router;

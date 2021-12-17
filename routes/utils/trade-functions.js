@@ -152,7 +152,7 @@ async function sell(details, id) {
 
 const addCash = async (id) => {
 
-  let cash = await Ticker.findOne({ where: { ticker: 'CASH' } })
+  let cash = await _Symbol.findOne({ where: { symbol: 'CASH' } })
 
   const cashtrade = await Ledger.create({
     userId: id,

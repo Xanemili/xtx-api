@@ -31,8 +31,8 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: new Date()
-      }
-    });
+      },
+    }, {});
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('Lists');

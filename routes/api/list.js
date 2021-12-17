@@ -82,11 +82,11 @@ router.delete('/:listId', authenticated, asyncHandler(async (req, res, next) => 
     const listToDelete = await List.findOne({
       where: {
         id: req.params.listId
-      }
+      },
     });
 
     if (listToDelete) {
-      await listToDelete.destroy();
+      await listToDelete.destroy( { truncate: true, cascade: true });
       res.json(listToDelete)
     }
   } catch(e) {

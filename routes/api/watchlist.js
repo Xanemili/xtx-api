@@ -3,6 +3,7 @@ const asyncHandler = require('express-async-handler');
 const {check, validationResult } = require('express-validator')
 
 const {List, _Symbol, Watchlist} = require('../../db/models');
+const listSymbol = require('../../db/models/listSymbol');
 const { authenticated} = require('../utils/utils');
 
 const router = express.Router();
@@ -57,10 +58,18 @@ router.post('/', authenticated, listValidators, asyncHandler( async(req, res, ne
 
 router.delete('/:listId', authenticated, asyncHandler( async (req, res, next) => {
   const listToDelete = await List.findOne({where: {id: req.params.listId}});
-
-  if(listToDelete){
-    await listToDelete.destroy();
-    res.json({message: 'List was removed from your profile.'})
+  const listItems = await listSymbol.findAll({ where: { id: req.params.listId}})
+  console.log(listItems)
+  try {
+    if(listToDelete){
+      listItems.forEach( item => {
+        await item.destroy()
+      })
+      await listToDelete.destroy();
+      res.json({message: 'List was removed from your profile.'})
+    }
+  } catch (e) {
+    next(e)
   }
 }))
 

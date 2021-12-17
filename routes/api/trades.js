@@ -62,11 +62,6 @@ router.post('/sell', authenticated, tradeValidation, asyncHandler(async (req, re
   try {
     const details = {...req.body}
     const trade_status = await Trades.sell(details, req.user.id)
-    if(trade.error || !trade){
-      console.log(trade.error)
-      throw new Error(trade.error.message)
-    }
-
   } catch (error) {
     next({status: 422, errors: 'trade failed'});
   }
